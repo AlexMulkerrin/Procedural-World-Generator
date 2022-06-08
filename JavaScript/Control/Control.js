@@ -1,7 +1,6 @@
-const zoomScales = [1,2,5, 10,20,50, 100,200,500, 1000,2000,5000, 10000,20000,50000, 100000,200000,500000, 1000000,2000000,5000000, 10000000,20000000,50000000, 100000000]; // in meters 2m to 100,000 km
-
-const NONE = -1;
-const mouseClickID = {leftClick:1, middleClick:2, rightClick:3};
+const zoomScales = [
+/* in meters 1m to 100,000 km */
+1,2,5, 10,20,50, 100,200,500, 1000,2000,5000, 10000,20000,50000, 100000,200000,500000, 1000000,2000000,5000000, 10000000,20000000,50000000, 100000000];
 
 function Control(inSimulation) {
 	this.c = document.getElementById("canvas");
@@ -20,20 +19,6 @@ function Control(inSimulation) {
 	this.c.onmousewheel = function (e) {t.handleMouseWheel(e.wheelDelta); return false; };
     // special case for Mozilla...
     this.c.onwheel = function (e) {t.handleMouseWheel(e); return false; };
-}
-
-function Mouse() {
-	this.x = -100;
-	this.y = -100;
-
-	this.mapX = -1;
-	this.mapY = -1;
-	this.isOverMap = false;
-
-	this.whichClick = NONE;
-	this.isDown = false;
-
-	this.hoveredButton = -1;
 }
 
 Control.prototype.handleMouseMove = function(event) {

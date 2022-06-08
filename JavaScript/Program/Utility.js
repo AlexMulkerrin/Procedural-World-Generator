@@ -1,3 +1,5 @@
+const NONE = -1;
+
 function randomInteger(limit) {
 	return Math.floor(Math.random()*limit);
 }
@@ -60,7 +62,6 @@ function printUnitsMeters(value) {
 		return Math.floor(value)+" m";
 	}
 }
-
 function printFixedWidthNumber(value,width) {
 	if (value<10) {
 		return "0"+value;

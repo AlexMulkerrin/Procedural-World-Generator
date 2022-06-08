@@ -1,4 +1,10 @@
-const colourID = {background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff", water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA", city:"#FF6A00", road:"#8E5928", field:"#FFBB00", agent:"#ffffff", moveOrder:"#00ff00"};
+const colour = {
+/* Interface elements */
+background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
+/* Terrain tile colours */
+water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA",
+/* Terrain objects */
+city:"#FF6A00", road:"#8E5928", field:"#FFBB00", agent:"#ffffff", moveOrder:"#00ff00"};
 
 function Display(inSimulation) {
 	this.targetSimulation = inSimulation;
@@ -26,7 +32,7 @@ Display.prototype.update = function() {
 	this.refresh();
 }
 Display.prototype.clearCanvas = function() {
-	this.ctx.fillStyle = colourID.background;
+	this.ctx.fillStyle = colour.background;
 	this.ctx.fillRect(0, 0, this.c.width, this.c.height);
 }
 Display.prototype.refresh = function() {
@@ -60,40 +66,40 @@ Display.prototype.drawTerrain = function() {
 			switch (terrain.tile[i][j].type) {
 				case tileID.water:
 					if (terrain.tile[i][j].elevation < 0) {
-						this.ctx.fillStyle = colourID.deepWater;
+						this.ctx.fillStyle = colour.deepWater;
 					} else {
-						this.ctx.fillStyle = colourID.water;
+						this.ctx.fillStyle = colour.water;
 					}
 					break;
 				case tileID.grassland:
-					this.ctx.fillStyle = colourID.grassland;
+					this.ctx.fillStyle = colour.grassland;
 					break;
 				case tileID.desert:
-					this.ctx.fillStyle = colourID.desert;
+					this.ctx.fillStyle = colour.desert;
 					break;
 				case tileID.plains:
-					this.ctx.fillStyle = colourID.plains;
+					this.ctx.fillStyle = colour.plains;
 					break;
 				case tileID.tundra:
-					this.ctx.fillStyle = colourID.tundra;
+					this.ctx.fillStyle = colour.tundra;
 					break;
 				case tileID.arctic:
-					this.ctx.fillStyle = colourID.arctic;
+					this.ctx.fillStyle = colour.arctic;
 					break;
 				case tileID.hills:
-					this.ctx.fillStyle = colourID.hills;
+					this.ctx.fillStyle = colour.hills;
 					break;
 				case tileID.mountain:
-					this.ctx.fillStyle = colourID.mountain;
+					this.ctx.fillStyle = colour.mountain;
 					break;
 				case tileID.forest:
-					this.ctx.fillStyle = colourID.forest;
+					this.ctx.fillStyle = colour.forest;
 					break;
 				case tileID.jungle:
-					this.ctx.fillStyle = colourID.jungle;
+					this.ctx.fillStyle = colour.jungle;
 					break;
 				case tileID.swamp:
-					this.ctx.fillStyle = colourID.swamp;
+					this.ctx.fillStyle = colour.swamp;
 					break;
 			}
 
@@ -103,11 +109,11 @@ Display.prototype.drawTerrain = function() {
 
 			var cityID = terrain.tile[i][j].cityTerritory;
 			if (cityID != NONE && terrain.tile[i][j].isFarm) {
-				this.ctx.fillStyle = colourID.field;
+				this.ctx.fillStyle = colour.field;
 				this.drawOutline(x+2,y+2,size-4,size-4,2);
 			}
 
-			this.ctx.fillStyle = colourID.textBlack;
+			this.ctx.fillStyle = colour.textBlack;
 			if (terrain.tile[i][j].desirability > 0) {
 				this.ctx.fillText(terrain.tile[i][j].desirability-21,x+10,y+20);
 			}
@@ -179,20 +185,20 @@ Display.prototype.drawCities = function() {
 
 	var size = 8;//Math.floor(planet.gridSize*incX);
 
-	for (var i=0; i<planet.city.length; i++) {
-		var c = planet.city[i];
+	for (var i=0; i<planet.structure.length; i++) {
+		var c = planet.structure[i];
 		var x = Math.floor((c.x - control.cameraX) * incX);
 		var y = Math.floor((c.y - control.cameraY) * incY);
 		var r = Math.floor(c.extent * incX);
 		if (r<size) r=size;
 
-		var factionID = planet.city[c.id].factionID;
+		var factionID = planet.structure[c.id].factionID;
 		this.ctx.fillStyle = planet.faction[factionID].colour;
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
-		this.ctx.fillStyle = colourID.textBlack;
+		this.ctx.fillStyle = colour.textBlack;
 		this.ctx.fillText(c.name+" "+c.population,x+1,y+2);
-		this.ctx.fillStyle = colourID.textCyan;
+		this.ctx.fillStyle = colour.textCyan;
 		this.ctx.fillText(c.name+" "+c.population,x,y);
 
 	}
@@ -226,8 +232,8 @@ Display.prototype.drawRoads = function() {
 				var x = (i*size) - cx;
 				var y = (j*size) - cy;
 
-				this.ctx.fillStyle = colourID.road;
-				this.ctx.strokeStyle = colourID.road;
+				this.ctx.fillStyle = colour.road;
+				this.ctx.strokeStyle = colour.road;
 				this.ctx.fillRect(x+size/2,y+size/2,width,width);
 
 				if ((t.roadConnections & mask[0]) == mask[0]) {
@@ -263,7 +269,7 @@ Display.prototype.drawAgents= function() {
 	var control = this.targetControl;
 
 	this.ctx.font = "bold 8px Verdana";
-	this.ctx.fillStyle = colourID.city;
+	this.ctx.fillStyle = colour.city;
 
 	var screenSpan = zoomScales[control.zoomLevel];
 	var incX = this.c.width/screenSpan;
@@ -278,12 +284,12 @@ Display.prototype.drawAgents= function() {
 		var r = Math.floor(a.size * incX);
 		if (r<size) r=size;
 
-		this.ctx.fillStyle = colourID.agent;
+		this.ctx.fillStyle = colour.agent;
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
 		if (a.state == stateID.moving) {
-			this.ctx.fillStyle = colourID.moveOrder;
-			this.ctx.strokeStyle = colourID.moveOrder;
+			this.ctx.fillStyle = colour.moveOrder;
+			this.ctx.strokeStyle = colour.moveOrder;
 			var tx = Math.floor((a.targX - control.cameraX) * incX);
 			var ty = Math.floor((a.targY - control.cameraY) * incY);
 			this.ctx.fillRect(tx-r/2,ty-r/2,r,r);
@@ -297,7 +303,7 @@ Display.prototype.drawLabels= function() {
 
 	this.ctx.font = "bold 16px Verdana";
 	//this.ctx.shadowBlur = 2;
-	//this.ctx.shadowColor= colourID.textWhite;
+	//this.ctx.shadowColor= colour.textWhite;
 
 	var screenSpan = zoomScales[control.zoomLevel];
 	var incX = this.c.width/screenSpan;
@@ -313,19 +319,19 @@ Display.prototype.drawLabels= function() {
 
 		switch (r.type) {
 			case regionID.island:
-				this.ctx.fillStyle = colourID.textDarkGreen;
+				this.ctx.fillStyle = colour.textDarkGreen;
 				break;
 			case regionID.water:
-				this.ctx.fillStyle = colourID.textDarkBlue;
+				this.ctx.fillStyle = colour.textDarkBlue;
 				break;
 			case regionID.terrain:
-				this.ctx.fillStyle = colourID.textWhite;
+				this.ctx.fillStyle = colour.textWhite;
 				break;
 		}
 
 		if (r.size > screenSpan/5000000) {
 			this.ctx.fillText(r.name,x,y);//+" ("+r.size+")",x,y);
-			//this.ctx.strokeStyle = colourID.textWhite;
+			//this.ctx.strokeStyle = colour.textWhite;
 			//this.ctx.strokeText(r.name+" ("+r.size+")",x,y);
 		}
 	}
@@ -337,7 +343,7 @@ Display.prototype.drawCursor = function() {
 	var sim = this.targetSimulation;
 	var control = this.targetControl;
 
-	this.ctx.fillStyle = colourID.cursor;
+	this.ctx.fillStyle = colour.cursor;
 
 	var screenSpan = zoomScales[control.zoomLevel];
 	var incX = this.c.width/screenSpan;
@@ -354,7 +360,7 @@ Display.prototype.drawStats = function() {
 	var control = this.targetControl;
 
 	this.ctx.font = "bold 16px Verdana";
-	this.ctx.fillStyle = colourID.textBlack;
+	this.ctx.fillStyle = colour.textBlack;
 
 	this.textCursorX = 10;
 	this.textCursorY = 20;
@@ -389,7 +395,7 @@ Display.prototype.drawStats = function() {
 
 	this.drawText("Factions: "+sim.planet.faction.length);
 
-	this.drawText("Cities: "+sim.planet.city.length);
+	this.drawText("Cities: "+sim.planet.structure.length);
 
 	this.drawText("Population: "+sim.planet.totalPop+"M");
 }
