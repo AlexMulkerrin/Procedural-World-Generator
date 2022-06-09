@@ -11,14 +11,26 @@ function Control(inSimulation) {
 	this.cameraX = -1*Math.floor((zoomScales[this.zoomLevel]-planet.circumference)/2);
 	this.cameraY = -1*Math.floor((zoomScales[this.zoomLevel]*this.c.height/this.c.width-planet.poleSpan)/2);
 
+	this.allowMousePanning = true;
+	this.panningRegion = 16;
+	this.panningRate = 0.02;
+
 	this.mouse = new Mouse();
 
 	var t = this;
 	this.c.onmousemove = function(e){t.handleMouseMove(e)};
 
+	// dummy functions to avoid rightclicking bringing up edit menu
+	this.c.oncontextmenu = function(event) {return false;};
+	this.c.onselectstart = function(event) {return false;};
+
 	this.c.onmousewheel = function (e) {t.handleMouseWheel(e.wheelDelta); return false; };
     // special case for Mozilla...
     this.c.onwheel = function (e) {t.handleMouseWheel(e); return false; };
+
+	this.keyCodes = [];
+	document.onkeydown = function(e){t.handleKeyDown(e)};
+	document.onkeyup = function(e){t.handleKeyUp(e)};
 }
 
 Control.prototype.handleMouseMove = function(event) {
@@ -30,8 +42,10 @@ Control.prototype.handleMouseMove = function(event) {
 Control.prototype.updateMouse = function() {
 	var p = this.targetSimulation.planet;
 	var m = this.mouse;
-	m.mapX = (m.x * zoomScales[this.zoomLevel] / this.c.width) + this.cameraX;
-	m.mapY = (m.y * zoomScales[this.zoomLevel] / this.c.width) + this.cameraY;
+	var scale = zoomScales[this.zoomLevel];
+
+	m.mapX = (m.x * scale / this.c.width) + this.cameraX;
+	m.mapY = (m.y * scale / this.c.width) + this.cameraY;
 
 	m.isOverMap = true;
 	if (m.mapX<0 || m.mapX>p.circumference || m.mapY>p.poleSpan || m.mapY<0) {
@@ -66,7 +80,73 @@ Control.prototype.handleMouseWheel = function(event) {
 	}
 	//this.updateMouse();
 }
+Control.prototype.handleKeyDown = function(event) {
+	var keyCode;
+	if (event == null) {
+		keyCode = window.event.keyCode;
+	} else {
+		keyCode = event.keyCode;
+	}
+
+	var key = String.fromCharCode(keyCode).toLowerCase();
+	this.keyCodes[key] = true;
+	this.keyCodes[keyCode] = true;
+
+	// prevent movement of page when program has focus
+	switch (keyCode) {
+		case 37: // left arrow
+		case 39: // right arrow
+		case 38: // up arrow
+		case 40: // down arrow
+		case 32: // spacebar
+			event.preventDefault();
+			break;
+	}
+}
+Control.prototype.handleKeyUp = function(event) {
+	var keyCode;
+	if (event == null) {
+		keyCode = window.event.keyCode;
+	} else {
+		keyCode = event.keyCode;
+	}
+
+	var key = String.fromCharCode(keyCode).toLowerCase();
+	this.keyCodes[key] = false;
+	this.keyCodes[keyCode] = false;
+}
 
 Control.prototype.update = function() {
-	//this.cameraX -= 10000;
+	this.handlePanning();
+}
+Control.prototype.handlePanning = function() {
+	var m = this.mouse;
+	var panDist = zoomScales[this.zoomLevel] *this.panningRate;
+
+	if (this.keyCodes['a'] || this.keyCodes[37]) {
+		this.cameraX -= panDist;
+	}
+	if (this.keyCodes['d'] || this.keyCodes[39]) {
+		this.cameraX += panDist;
+	}
+	if (this.keyCodes['w'] || this.keyCodes[38]) {
+		this.cameraY -= panDist;
+	}
+	if (this.keyCodes['s'] || this.keyCodes[40]) {
+		this.cameraY += panDist;
+	}
+
+	if (this.mouse.isOverMap == true && this.allowMousePanning == true) {
+		if (m.x < this.panningRegion) {
+			this.cameraX -= panDist;
+		} else if (m.x > this.c.width - this.panningRegion) {
+			this.cameraX += panDist;
+		}
+		if (m.y < this.panningRegion) {
+			this.cameraY -= panDist;
+		} else if (m.y > this.c.height - this.panningRegion) {
+			this.cameraY += panDist;
+		}
+	}
+	this.updateMouse();
 }
