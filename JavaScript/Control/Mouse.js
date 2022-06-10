@@ -4,12 +4,12 @@ function Mouse() {
 	this.x = -100;
 	this.y = -100;
 
-	this.mapX = -1;
-	this.mapY = -1;
+	this.mapX = NONE;
+	this.mapY = NONE;
 	this.isOverMap = false;
 
 	this.whichClick = NONE;
 	this.isDown = false;
 
-	this.hoveredButton = -1;
+	this.hoveredButton = NONE;
 }

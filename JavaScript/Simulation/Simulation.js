@@ -1,3 +1,4 @@
+const gameStateID = {start:0, menu:1, ingame:2};
 
 function Simulation() {
 	this.timer = 0;
@@ -5,21 +6,26 @@ function Simulation() {
 	this.month = 0;
 	this.day = 0;
 
+	this.isPaused = false;
+	this.gameState = gameStateID.ingame;
+
 	this.planet = new Planet(6371000,0);
 }
 
 Simulation.prototype.update = function() {
 	this.timer++;
 
-	this.updateAgents();
+	if (this.isPaused == false) {
+		this.updateAgents();
 
-	this.day++;
-	if (this.day>=30) {
-		this.day = 0;
-		this.month++;
-		if (this.month>=12) {
-			this.year++;
-			this.month = 0;
+		this.day++;
+		if (this.day>=30) {
+			this.day = 0;
+			this.month++;
+			if (this.month>=12) {
+				this.year++;
+				this.month = 0;
+			}
 		}
 	}
 }

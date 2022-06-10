@@ -1,6 +1,7 @@
 const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
+highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 /* Terrain tile colours */
 water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA",
 /* Terrain objects */
@@ -45,8 +46,10 @@ Display.prototype.refresh = function() {
 
 	this.drawLabels();
 
+	this.drawButtons();
 	this.drawCursor();
 	this.drawStats();
+	this.drawTooltip();
 }
 Display.prototype.drawTerrain = function() {
 	var planet = this.targetSimulation.planet;
@@ -339,6 +342,28 @@ Display.prototype.drawLabels= function() {
 	//this.ctx.shadowBlur = 0;
 }
 
+Display.prototype.drawButtons = function() {
+	var ctrl = this.targetControl;
+	for (var i=0; i<ctrl.button.length; i++){
+		var b = ctrl.button[i];
+		if (ctrl.mouse.hoveredButton == i) {
+			this.ctx.fillStyle = colour.highlight
+		} else if (ctrl.selected == i){
+			this.ctx.fillStyle = colour.select;
+		} else {
+			this.ctx.fillStyle = colour.button;
+		}
+		this.ctx.fillRect(b.x, b.y, b.width, b.height);
+
+		if (b.text !== "") {
+			var textSize = 16;//Math.floor(b.width/b.text.length);
+			var textHeight = Math.floor((b.height-textSize)/2);
+			this.ctx.font = "bold "+textSize+"px Verdana";
+			this.ctx.fillStyle = colour.textBlack;
+			this.ctx.fillText(b.text, b.x+4,b.y+textHeight+14);
+		}
+	}
+}
 Display.prototype.drawCursor = function() {
 	var sim = this.targetSimulation;
 	var control = this.targetControl;
@@ -363,7 +388,7 @@ Display.prototype.drawStats = function() {
 	this.ctx.fillStyle = colour.textBlack;
 
 	this.textCursorX = 10;
-	this.textCursorY = 20;
+	this.textCursorY = 60;
 
 	this.drawText(printFixedWidthNumber(sim.day)+"/"+printFixedWidthNumber(sim.month)+"/"+printFixedWidthNumber(sim.year)+" "+Math.floor(sim.timer/60)+"s");
 
@@ -398,6 +423,25 @@ Display.prototype.drawStats = function() {
 	this.drawText("Cities: "+sim.planet.structure.length);
 
 	this.drawText("Population: "+sim.planet.totalPop+"M");
+}
+Display.prototype.drawTooltip = function() {
+	this.ctx.font = "bold 16px Verdana";
+	var ctrl = this.targetControl;
+	if (ctrl.mouse.hoveredButton>=0) {
+		var b = ctrl.button[ctrl.mouse.hoveredButton];
+
+		var textLength = this.ctx.measureText(b.tooltip).width;
+		var x = ctrl.mouse.x;
+		var y = ctrl.mouse.y;
+
+		this.ctx.fillStyle = colour.textBlack;
+		this.ctx.fillRect(x,y, 30+textLength, 35);
+
+		this.ctx.fillStyle = colour.textWhite;
+		this.ctx.fillText(b.tooltip, x+8,y+20);
+
+
+	}
 }
 
 Display.prototype.drawOutline = function(x,y,width,height,thickness) {
