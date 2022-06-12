@@ -2,8 +2,10 @@ const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
+minimap:"#ffffff",
 /* Terrain tile colours */
 water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA",
+unseen:"#000000",
 /* Terrain objects */
 city:"#FF6A00", road:"#8E5928", field:"#FFBB00", agent:"#ffffff", moveOrder:"#00ff00"};
 
@@ -45,6 +47,7 @@ Display.prototype.refresh = function() {
 	this.drawAgents();
 
 	this.drawLabels();
+	this.drawMinimap();
 
 	this.drawButtons();
 	this.drawCursor();
@@ -66,45 +69,7 @@ Display.prototype.drawTerrain = function() {
 
 	for (var i=0; i<terrain.width; i++) {
 		for (var j=0; j<terrain.height; j++) {
-			switch (terrain.tile[i][j].type) {
-				case tileID.water:
-					if (terrain.tile[i][j].elevation < 0) {
-						this.ctx.fillStyle = colour.deepWater;
-					} else {
-						this.ctx.fillStyle = colour.water;
-					}
-					break;
-				case tileID.grassland:
-					this.ctx.fillStyle = colour.grassland;
-					break;
-				case tileID.desert:
-					this.ctx.fillStyle = colour.desert;
-					break;
-				case tileID.plains:
-					this.ctx.fillStyle = colour.plains;
-					break;
-				case tileID.tundra:
-					this.ctx.fillStyle = colour.tundra;
-					break;
-				case tileID.arctic:
-					this.ctx.fillStyle = colour.arctic;
-					break;
-				case tileID.hills:
-					this.ctx.fillStyle = colour.hills;
-					break;
-				case tileID.mountain:
-					this.ctx.fillStyle = colour.mountain;
-					break;
-				case tileID.forest:
-					this.ctx.fillStyle = colour.forest;
-					break;
-				case tileID.jungle:
-					this.ctx.fillStyle = colour.jungle;
-					break;
-				case tileID.swamp:
-					this.ctx.fillStyle = colour.swamp;
-					break;
-			}
+			this.ctx.fillStyle = this.selectTileColour(terrain.tile[i][j]);
 
 			var x = (i*size) - cx;
 			var y = (j*size) - cy;
@@ -267,7 +232,7 @@ Display.prototype.drawRoads = function() {
 		}
 	}
 }
-Display.prototype.drawAgents= function() {
+Display.prototype.drawAgents = function() {
 	var planet = this.targetSimulation.planet;
 	var control = this.targetControl;
 
@@ -300,7 +265,8 @@ Display.prototype.drawAgents= function() {
 		}
 	}
 }
-Display.prototype.drawLabels= function() {
+
+Display.prototype.drawLabels = function() {
 	var planet = this.targetSimulation.planet;
 	var control = this.targetControl;
 
@@ -340,6 +306,48 @@ Display.prototype.drawLabels= function() {
 	}
 
 	//this.ctx.shadowBlur = 0;
+}
+Display.prototype.drawMinimap = function() {
+	var planet = this.targetSimulation.planet;
+	var terrain = this.targetSimulation.planet.terrain;
+	var control = this.targetControl;
+
+	var sqSize = 3;
+	var offsetX = 0;
+	var offsetY = this.c.height - (terrain.height*sqSize);
+
+	var minimapWidth = terrain.width * sqSize;
+	var minimapHeight = terrain.height * sqSize;
+
+	this.ctx.fillStyle = colour.unseen;
+	this.ctx.fillRect(offsetX, offsetY, terrain.width*sqSize, terrain.height*sqSize);
+
+	for (var i=0; i<terrain.width; i++) {
+		for (var j=0; j<terrain.height; j++) {
+			this.ctx.fillStyle = this.selectTileColour(terrain.tile[i][j]);
+			var x = i*sqSize + offsetX;
+			var y = j*sqSize + offsetY;
+			this.ctx.fillRect(x,y,sqSize,sqSize);
+		}
+	}
+
+	var screenSpan = zoomScales[control.zoomLevel];
+	var screenHeight = screenSpan * this.c.height / this.c.width;
+
+	var cw = minimapWidth * screenSpan/(terrain.width*planet.gridSize);
+	var ch = minimapHeight * screenHeight/(terrain.height*planet.gridSize);
+
+	var cx = (control.cameraX * cw/screenSpan);
+	var cy = (control.cameraY * ch/screenHeight);
+
+	if (cx<0) cx = 0;
+	if (cy<0) cy =0;
+
+	if (cx + cw > minimapWidth) cw = minimapWidth - cx;
+	if (cy + ch > minimapHeight) ch = minimapHeight - cy;
+
+	this.ctx.fillStyle = colour.minimap;
+	this.drawOutline(offsetX + cx -1, offsetY + cy -1, cw+2, ch+2, 1);
 }
 
 Display.prototype.drawButtons = function() {
@@ -432,13 +440,15 @@ Display.prototype.drawTooltip = function() {
 
 		var textLength = this.ctx.measureText(b.tooltip).width;
 		var x = ctrl.mouse.x;
+		if (x > this.c.width/2) x -= (textLength+32);
 		var y = ctrl.mouse.y;
+		if (y > this.c.height/2) y -= 36;
 
 		this.ctx.fillStyle = colour.textBlack;
 		this.ctx.fillRect(x,y, 30+textLength, 35);
 
 		this.ctx.fillStyle = colour.textWhite;
-		this.ctx.fillText(b.tooltip, x+8,y+20);
+		this.ctx.fillText(b.tooltip, x+12,y+22);
 
 
 	}
@@ -460,4 +470,48 @@ Display.prototype.drawLine = function(x,y,x2,y2,thickness) {
 Display.prototype.drawText = function(text) {
 	this.ctx.fillText(text, this.textCursorX, this.textCursorY);
 	this.textCursorY += this.textHeight;
+}
+
+Display.prototype.selectTileColour = function(tile) {
+	var result = colour.error;
+	switch (tile.type) {
+		case tileID.water:
+			if (tile.elevation < 0) {
+				result = colour.deepWater;
+			} else {
+				result = colour.water;
+			}
+			break;
+		case tileID.grassland:
+			result= colour.grassland;
+			break;
+		case tileID.desert:
+			result = colour.desert;
+			break;
+		case tileID.plains:
+			result = colour.plains;
+			break;
+		case tileID.tundra:
+			result = colour.tundra;
+			break;
+		case tileID.arctic:
+			result = colour.arctic;
+			break;
+		case tileID.hills:
+			result = colour.hills;
+			break;
+		case tileID.mountain:
+			result = colour.mountain;
+			break;
+		case tileID.forest:
+			result = colour.forest;
+			break;
+		case tileID.jungle:
+			result = colour.jungle;
+			break;
+		case tileID.swamp:
+			result = colour.swamp;
+			break;
+	}
+	return result;
 }

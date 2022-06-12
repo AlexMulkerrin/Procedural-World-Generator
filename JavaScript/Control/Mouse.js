@@ -8,6 +8,8 @@ function Mouse() {
 	this.mapY = NONE;
 	this.isOverMap = false;
 
+	this.isOverMinimap = false;
+
 	this.whichClick = NONE;
 	this.isDown = false;
 
