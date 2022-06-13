@@ -22,12 +22,6 @@ function Display(inSimulation) {
 	this.textCursorY = 0;
 	this.textHeight = 20;
 
-	var t = this;
-	window.onresize = function(){t.resizeCanvas(); };
-}
-Display.prototype.resizeCanvas = function() {
-	this.c.width = window.innerWidth;
-	this.c.height = window.innerHeight;
 }
 
 Display.prototype.update = function() {
@@ -395,14 +389,14 @@ Display.prototype.drawStats = function() {
 	this.ctx.font = "bold 16px Verdana";
 	this.ctx.fillStyle = colour.textBlack;
 
-	this.textCursorX = 10;
-	this.textCursorY = 60;
+	this.textCursorX = 50;
+	this.textCursorY = 30;
 
 	this.drawText(printFixedWidthNumber(sim.day)+"/"+printFixedWidthNumber(sim.month)+"/"+printFixedWidthNumber(sim.year)+" "+Math.floor(sim.timer/60)+"s");
 
-	var zoom = zoomScales[control.zoomLevel];
-	this.drawText("zoom level: "+control.zoomLevel+" screen span: "+printUnitsMeters(zoom));
-
+	this.textCursorX = 10;
+	this.textCursorY = 60;
+	/*
 	var m = control.mouse;
 	if (m.isOverMap) {
 		this.drawText("mouse map pos: "+printUnitsMeters(m.mapX)+", "+printUnitsMeters(m.mapY));
@@ -414,9 +408,7 @@ Display.prototype.drawStats = function() {
 	}
 
 	this.drawText("Camera: "+printUnitsMeters(control.cameraX)+", "+printUnitsMeters(control.cameraY));
-
-	this.drawText("Radius: "+printUnitsMeters(sim.planet.radius));
-	this.drawText("Grid size: "+sim.planet.terrain.width+","+sim.planet.terrain.height);
+	*/
 
 	var planet = this.targetSimulation.planet;
 	var terrain = this.targetSimulation.planet.terrain;
@@ -424,9 +416,14 @@ Display.prototype.drawStats = function() {
 	var screenSpan = zoomScales[control.zoomLevel];
 	var incX = this.c.width/screenSpan;
 	var size = Math.floor(planet.gridSize*incX);
-	this.drawText("Tile size: "+size);
 
-	this.drawText("Tile counts: "+sim.planet.terrain.count);
+	this.drawText("Planet: "+planet.name);
+	this.drawText("Radius: "+printUnitsMeters(planet.radius));
+	this.drawText("Grid size: "+planet.terrain.width+","+planet.terrain.height);
+
+	this.drawText("Tile size: "+size+"px");
+
+	//this.drawText("Tile counts: "+sim.planet.terrain.count);
 	this.drawText("Land: "+sim.planet.terrain.totalLand);
 
 	this.drawText("Factions: "+sim.planet.faction.length);
@@ -434,6 +431,11 @@ Display.prototype.drawStats = function() {
 	this.drawText("Cities: "+sim.planet.structure.length);
 
 	this.drawText("Population: "+sim.planet.totalPop+"M");
+
+	this.textCursorX = this.c.width - 300;
+	this.textCursorY = this.c.height - 15;
+	var zoom = zoomScales[control.zoomLevel];
+	this.drawText("zoom level: "+control.zoomLevel+" ("+printUnitsMeters(zoom)+")");
 }
 Display.prototype.drawTooltip = function() {
 	this.ctx.font = "bold 16px Verdana";

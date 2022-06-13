@@ -1,6 +1,7 @@
 
 
 function Planet(inRadius, inRadiusVariation) {
+	this.name = randomName();
 	this.radius = Math.floor(inRadius * (1 + Math.random()*inRadiusVariation*2 - inRadiusVariation));
 	this.circumference = Math.floor(2*Math.PI*this.radius);
 	this.poleSpan = Math.floor(this.circumference/2);

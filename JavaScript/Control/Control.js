@@ -38,6 +38,13 @@ function Control(inSimulation) {
 	this.keyCodes = [];
 	document.onkeydown = function(e){t.handleKeyDown(e)};
 	document.onkeyup = function(e){t.handleKeyUp(e)};
+
+	window.onresize = function(){t.resizeCanvas(); };
+}
+Control.prototype.resizeCanvas = function() {
+	this.c.width = window.innerWidth;
+	this.c.height = window.innerHeight;
+	this.createButtons();
 }
 
 function ButtonGrid(inSize, inGap, inC) {
@@ -46,8 +53,8 @@ function ButtonGrid(inSize, inGap, inC) {
 	this.c = inC;
 	this.x = this.gap;
 	this.y = this.gap;
-	this.width = Math.floor((this.c.width-this.gap)/(this.size+this.gap));
-	this.height = Math.floor((this.c.height-this.gap)/(this.size+this.gap));
+	this.width = Math.ceil((this.c.width-this.gap)/(this.size+this.gap));
+	this.height = Math.ceil((this.c.height-this.gap)/(this.size+this.gap));
 }
 ButtonGrid.prototype.shift = function(dx,dy) {
 	this.x += dx * (this.size + this.gap);
@@ -71,6 +78,7 @@ ButtonGrid.prototype.shift = function(dx,dy) {
 }
 Control.prototype.createButtons = function() {
 	this.button = [];
+	this.buttonGrid = new ButtonGrid(30, 8, this.c);
 
 	switch(this.targetSimulation.gameState) {
 		case gameStateID.start:
@@ -83,21 +91,30 @@ Control.prototype.createButtons = function() {
 			this.makeInterface();
 			break;
 	}
+
+	this.updateMouse();
 }
 Control.prototype.makeInterface = function() {
 	var g = this.buttonGrid;
 	// top left
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏸️", "toggle pause","togglePause"));
-	g.shift(0,1);
-	g.shift(-1,0);
+
 	// top right
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu","openMenu"));
-	g.x = g.gap;
+	g.x = this.c.width - (g.size + g.gap);
 	g.y = g.gap;
-	g.shift(-1,0);
-	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu","openMenu"));
+
 	// bottom right
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"", "toggleFullscreen","toggleFullscreen"));
+	g.y = this.c.height - (g.size + g.gap);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"↔️", "toggleFullscreen","toggleFullscreen"));
+	g.shift(0,-1);
+	if (this.zoomLevel < (zoomScales.length - 1) ) {
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out","zoomOut",false));
+	}
+	g.shift(0,-1);
+	if (this.zoomLevel > 0 ) {
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬆️", "zoom in","zoomIn",false));
+	}
 
 }
 
@@ -127,14 +144,6 @@ Control.prototype.handleMouseMove = function(event) {
 	m.x = event.layerX;
 	m.y = event.layerY;
 
-	m.hoveredButton = NONE;
-	for (var i=0; i<this.button.length; i++) {
-		var b = this.button[i];
-		if (b.mouseIsInBounds(m.x, m.y)) {
-			m.hoveredButton = i;
-		}
-	}
-
 	this.updateMouse();
 }
 Control.prototype.updateMouse = function() {
@@ -144,6 +153,14 @@ Control.prototype.updateMouse = function() {
 
 	m.mapX = (m.x * scale / this.c.width) + this.cameraX;
 	m.mapY = (m.y * scale / this.c.width) + this.cameraY;
+
+	m.hoveredButton = NONE;
+	for (var i=0; i<this.button.length; i++) {
+		var b = this.button[i];
+		if (b.mouseIsInBounds(m.x, m.y)) {
+			m.hoveredButton = i;
+		}
+	}
 
 	m.isOverMap = true;
 	if (m.mapX<0 || m.mapX>p.circumference || m.mapY>p.poleSpan || m.mapY<0) {
@@ -204,30 +221,10 @@ Control.prototype.handleMouseUp = function(event) {
 Control.prototype.handleMouseWheel = function(event) {
 	var change = -event.deltaY || event.wheelDelta;
 	if (change < 0) {
-		this.zoomLevel++;
-		if (this.zoomLevel >= zoomScales.length) {
-			this.zoomLevel = zoomScales.length-1;
-		} else {
-			var offsetX = this.mouse.mapX - this.cameraX;
-			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
-
-			var offsetY = this.mouse.mapY - this.cameraY;
-			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
-		}
+		this.zoomOut(true);
 	} else if (change > 0) {
-		this.zoomLevel--;
-		if (this.zoomLevel < 0) {
-			this.zoomLevel = 0;
-		} else {
-			var offsetX = this.mouse.mapX - this.cameraX;
-			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel+1] * offsetX ;
-
-			var offsetY = this.mouse.mapY - this.cameraY;
-			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel+1] * offsetY ;
-
-		}
+		this.zoomIn(true);
 	}
-	//this.updateMouse();
 }
 Control.prototype.handleKeyDown = function(event) {
 	var keyCode;
@@ -274,8 +271,13 @@ Control.prototype.openMenu = function() {
 	console.log("not implemented yet!");
 }
 Control.prototype.toggleFullscreen = function() {
-	// todo
-	console.log("not implemented yet!");
+	if (!document.fullscreenElement) {
+		document.documentElement.requestFullscreen();
+	} else {
+		if (document.exitFullscreen) {
+			document.exitFullscreen();
+		}
+	}
 }
 Control.prototype.centerCamera = function(x,y) {
 	var span = zoomScales[this.zoomLevel];
@@ -283,6 +285,48 @@ Control.prototype.centerCamera = function(x,y) {
 	var offsetY = offsetX * this.c.height/this.c.width;
 	this.cameraX = x - offsetX;
 	this.cameraY = y - offsetY;
+}
+Control.prototype.zoomIn = function(focusOnMouse) {
+	this.zoomLevel--;
+	if (this.zoomLevel < 0) {
+		this.zoomLevel = 0;
+	} else {
+		if (focusOnMouse == true) {
+			var offsetX = this.mouse.mapX - this.cameraX;
+			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel+1] * offsetX ;
+
+			var offsetY = this.mouse.mapY - this.cameraY;
+			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel+1] * offsetY ;
+		} else {
+			var offsetX = zoomScales[this.zoomLevel]/2;
+			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
+
+			var offsetY = offsetX * this.c.height/this.c.width;
+			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
+		}
+		this.createButtons();
+	}
+}
+Control.prototype.zoomOut = function(focusOnMouse) {
+	this.zoomLevel++;
+	if (this.zoomLevel >= zoomScales.length) {
+		this.zoomLevel = zoomScales.length-1;
+	} else {
+		if (focusOnMouse == true) {
+			var offsetX = this.mouse.mapX - this.cameraX;
+			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
+
+			var offsetY = this.mouse.mapY - this.cameraY;
+			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
+		} else {
+			var offsetX = zoomScales[this.zoomLevel]/2;
+			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
+
+			var offsetY = offsetX * this.c.height/this.c.width;
+			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
+		}
+		this.createButtons();
+	}
 }
 
 Control.prototype.update = function() {
@@ -305,7 +349,7 @@ Control.prototype.handlePanning = function() {
 		this.cameraY += panDist;
 	}
 
-	if (this.mouse.isOverMap == true && this.allowMousePanning == true) {
+	if (m.hoveredButton == NONE && m.isOverMap == true && this.allowMousePanning == true) {
 		if (m.x < this.panningRegion) {
 			this.cameraX -= panDist;
 		} else if (m.x > this.c.width - this.panningRegion) {
