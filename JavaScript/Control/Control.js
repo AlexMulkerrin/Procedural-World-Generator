@@ -122,14 +122,16 @@ Button.prototype.mouseIsInBounds = function(x, y) {
 }
 
 Control.prototype.handleMouseMove = function(event) {
-	this.mouse.x = event.layerX;
-	this.mouse.y = event.layerY;
+	var m = this.mouse;
 
-	this.mouse.hoveredButton = -1;
+	m.x = event.layerX;
+	m.y = event.layerY;
+
+	m.hoveredButton = NONE;
 	for (var i=0; i<this.button.length; i++) {
 		var b = this.button[i];
-		if (b.mouseIsInBounds(this.mouse.x, this.mouse.y)) {
-			this.mouse.hoveredButton = i;
+		if (b.mouseIsInBounds(m.x, m.y)) {
+			m.hoveredButton = i;
 		}
 	}
 
@@ -147,30 +149,51 @@ Control.prototype.updateMouse = function() {
 	if (m.mapX<0 || m.mapX>p.circumference || m.mapY>p.poleSpan || m.mapY<0) {
 		m.isOverMap = false;
 	}
+
+	var sqSize = 3;
+	m.isOverMinimap = false;
+	if (m.hoveredButton == NONE) {
+		if (m.x < p.terrain.width * sqSize && m.y > this.c.height - (p.terrain.height*sqSize) ) {
+			m.isOverMinimap = true;
+			m.isOverMap = false;
+
+			// handle minimap drag
+			if (m.isDown == true && m.whichClick == mouseClickID.leftClick) {
+				var p = this.targetSimulation.planet;
+				var sqSize = 3;
+				var x = m.x/sqSize * p.gridSize;
+				var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
+				this.centerCamera(x,y);
+			}
+		}
+	}
 }
 Control.prototype.handleMouseDown = function(event) {
-	this.mouse.whichClick = event.which;
-	this.mouse.isDown = true;
+	var m = this.mouse;
+	m.whichClick = event.which;
+	m.isDown = true;
 
-	switch (this.mouse.whichClick) {
+	switch (m.whichClick) {
 		case mouseClickID.leftClick:
-			if (this.mouse.hoveredButton>=0) {
-				var b = this.button[this.mouse.hoveredButton];
+			if (m.hoveredButton>=0) {
+				var b = this.button[m.hoveredButton];
 				this[b.function](b.functionArguments);
 			} else {
-
+				// handle minimap click
+				if (m.isOverMinimap == true) {
+					var p = this.targetSimulation.planet;
+					var sqSize = 3;
+					var x = m.x/sqSize * p.gridSize;
+					var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
+					this.centerCamera(x,y);
+				}
 			}
 			break;
 		case mouseClickID.middleClick:
 			this.togglePause();
 			break;
 		case mouseClickID.rightClick:
-			if (this.selected>=0) {
-				var b = this.button[this.selected];
-				this[b.function](b.functionArguments);
-			} else {
 
-			}
 			break;
 	}
 }
@@ -254,13 +277,20 @@ Control.prototype.toggleFullscreen = function() {
 	// todo
 	console.log("not implemented yet!");
 }
+Control.prototype.centerCamera = function(x,y) {
+	var span = zoomScales[this.zoomLevel];
+	var offsetX = span/2;
+	var offsetY = offsetX * this.c.height/this.c.width;
+	this.cameraX = x - offsetX;
+	this.cameraY = y - offsetY;
+}
 
 Control.prototype.update = function() {
 	this.handlePanning();
 }
 Control.prototype.handlePanning = function() {
 	var m = this.mouse;
-	var panDist = zoomScales[this.zoomLevel] *this.panningRate;
+	var panDist = zoomScales[this.zoomLevel] * this.panningRate;
 
 	if (this.keyCodes['a'] || this.keyCodes[37]) {
 		this.cameraX -= panDist;

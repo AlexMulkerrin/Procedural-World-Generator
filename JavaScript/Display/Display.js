@@ -409,6 +409,9 @@ Display.prototype.drawStats = function() {
 	} else {
 		this.drawText("mouse map pos: -, -");
 	}
+	if (m.isOverMinimap) {
+		this.drawText("minimap");
+	}
 
 	this.drawText("Camera: "+printUnitsMeters(control.cameraX)+", "+printUnitsMeters(control.cameraY));
 
