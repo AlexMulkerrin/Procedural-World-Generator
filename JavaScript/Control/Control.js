@@ -298,11 +298,11 @@ Control.prototype.zoomIn = function(focusOnMouse) {
 			var offsetY = this.mouse.mapY - this.cameraY;
 			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel+1] * offsetY ;
 		} else {
-			var offsetX = zoomScales[this.zoomLevel]/2;
-			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
+			var offsetX = (zoomScales[this.zoomLevel+1] - zoomScales[this.zoomLevel])/2;
+			this.cameraX += offsetX;
 
 			var offsetY = offsetX * this.c.height/this.c.width;
-			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
+			this.cameraY += offsetY;
 		}
 		this.createButtons();
 	}
@@ -319,11 +319,11 @@ Control.prototype.zoomOut = function(focusOnMouse) {
 			var offsetY = this.mouse.mapY - this.cameraY;
 			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
 		} else {
-			var offsetX = zoomScales[this.zoomLevel]/2;
-			this.cameraX += offsetX - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetX ;
+			var offsetX = (zoomScales[this.zoomLevel-1] - zoomScales[this.zoomLevel])/2;
+			this.cameraX += offsetX;
 
 			var offsetY = offsetX * this.c.height/this.c.width;
-			this.cameraY += offsetY - zoomScales[this.zoomLevel] / zoomScales[this.zoomLevel-1] * offsetY ;
+			this.cameraY += offsetY;
 		}
 		this.createButtons();
 	}
