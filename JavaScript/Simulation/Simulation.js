@@ -11,6 +11,13 @@ function Simulation() {
 
 	this.planet = new Planet(6371000,0);
 }
+Simulation.prototype.generateNewPlanet = function() {
+	this.year = 0;
+	this.month = 0;
+	this.day = 0;
+
+	this.planet = new Planet(6371000,0);
+}
 
 Simulation.prototype.update = function() {
 	this.timer++;

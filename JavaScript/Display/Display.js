@@ -33,20 +33,31 @@ Display.prototype.clearCanvas = function() {
 	this.ctx.fillRect(0, 0, this.c.width, this.c.height);
 }
 Display.prototype.refresh = function() {
+	var ctrl = this.targetControl;
 	this.drawTerrain();
-	this.drawBorders();
+	if (ctrl.visibilityFlags[visibilityID.territory] == true) {
+		this.drawBorders();
+	}
+	if (ctrl.visibilityFlags[visibilityID.improvements] == true) {
+		this.drawRoads();
+	}
+	if (ctrl.visibilityFlags[visibilityID.cities] == true) {
+		this.drawCities();
+	}
+	if (ctrl.visibilityFlags[visibilityID.agents] == true) {
+		this.drawAgents();
+	}
+	if (ctrl.visibilityFlags[visibilityID.labels] == true) {
+		this.drawLabels();
+	}
+	if (ctrl.visibilityFlags[visibilityID.interface] == true) {
+		this.drawMinimap();
 
-	this.drawRoads();
-	this.drawCities();
-	this.drawAgents();
-
-	this.drawLabels();
-	this.drawMinimap();
-
-	this.drawStats();
-	this.drawButtons();
-	this.drawCursor();
-	this.drawTooltip();
+		this.drawStats();
+		this.drawButtons();
+		this.drawCursor();
+		this.drawTooltip();
+	}
 }
 Display.prototype.drawTerrain = function() {
 	var planet = this.targetSimulation.planet;
@@ -70,7 +81,8 @@ Display.prototype.drawTerrain = function() {
 			this.ctx.fillRect(x,y,size,size);
 
 			var cityID = terrain.tile[i][j].cityTerritory;
-			if (cityID != NONE && terrain.tile[i][j].isFarm) {
+			var flag = this.targetControl.visibilityFlags[visibilityID.improvements];
+			if (flag == true && cityID != NONE && terrain.tile[i][j].isFarm) {
 				this.ctx.fillStyle = colour.field;
 				this.drawOutline(x+2,y+2,size-4,size-4,2);
 			}

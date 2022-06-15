@@ -3,6 +3,7 @@ const zoomScales = [
 1,2,5, 10,20,50, 100,200,500, 1000,2000,5000, 10000,20000,50000, 100000,200000,500000, 1000000,2000000,5000000, 10000000,20000000,50000000, 100000000];
 
 const detailsID = {planet:0, terrain:1, factions:2, cities:3, agents:4};
+const visibilityID = {territory:0, improvements:1, cities:2, agents:3, labels:4, interface:5};
 
 function Control(inSimulation) {
 	this.c = document.getElementById("canvas");
@@ -25,6 +26,14 @@ function Control(inSimulation) {
 	this.selected = NONE;
 
 	this.detailsTab = detailsID.planet;
+	this.visibilityFlags = [];
+	this.visibilityFlags[visibilityID.territory] = true;
+	this.visibilityFlags[visibilityID.improvements] = true;
+	this.visibilityFlags[visibilityID.cities] = true;
+	this.visibilityFlags[visibilityID.agents] = true;
+	this.visibilityFlags[visibilityID.labels] = true;
+	this.visibilityFlags[visibilityID.interface] = true;
+
 
 	var t = this;
 	this.c.onmousemove = function(e){t.handleMouseMove(e)};
@@ -101,41 +110,59 @@ Control.prototype.createButtons = function() {
 Control.prototype.makeInterface = function() {
 	var g = this.buttonGrid;
 	// top left
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏸️", "toggle pause","togglePause"));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏸️", "toggle pause",' ',"togglePause"));
 	g.shift(0,1);
 
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🌍", "view planet details","setDetailsTab",0));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🌍", "view planet details",'q',"setDetailsTab",0));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏞️", "view terrain details","setDetailsTab",1));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏞️", "view terrain details",'q',"setDetailsTab",1));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚩", "view faction details","setDetailsTab",2));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚩", "view faction details",'q',"setDetailsTab",2));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏢", "view city details","setDetailsTab",3));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏢", "view city details",'q',"setDetailsTab",3));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"⛵️", "view agent details","setDetailsTab",4));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⛵️", "view agent details",'q',"setDetailsTab",4));
 
 	// top right
 	g.x = this.c.width - (g.size + g.gap);
 	g.y = g.gap;
-	//this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu","openMenu"));
+	//this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu",'m',"openMenu"));
 	g.shift(-1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔄", "generate new world","generateWorld"));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔄", "generate new world",'r',"generateWorld"));
+
+	// bottom left 🟢⚪️
+	g.x = 248;
+	g.y = this.c.height - (g.size + g.gap);
+	g.shift(0,-1);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle territory visibility",'t',"toggleVisibilityFlag",0));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle improvements visibility",'y',"toggleVisibilityFlag",1));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle cities visibility",'u',"toggleVisibilityFlag",2));
+	g.shift(-2,1);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle agents visibility",'i',"toggleVisibilityFlag",3));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle labels visibility",'o',"toggleVisibilityFlag",4));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle interface visibility",'p',"toggleVisibilityFlag",5));
+	g.shift(1,0);
 
 	// bottom right
+	g.x = this.c.width - (g.size + g.gap);
 	g.y = this.c.height - (g.size + g.gap);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"↔️", "toggleFullscreen","toggleFullscreen"));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"↔️", "toggleFullscreen",'f',"toggleFullscreen"));
 	g.shift(0,-1);
 	if (this.zoomLevel < (zoomScales.length - 1) ) {
-		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out","zoomOut",false));
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out",173,"zoomOut",false));
 	}
 	g.shift(0,-1);
 	if (this.zoomLevel > 0 ) {
-		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬆️", "zoom in","zoomIn",false));
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬆️", "zoom in",61,"zoomIn",false));
 	}
 
 }
 
-function Button( inX, inY, inWidth, inHeight, inText, inTooltip, inFunction, inFuncArgs) {
+function Button( inX, inY, inWidth, inHeight, inText, inTooltip, inHotkey, inFunction, inFuncArgs) {
 	this.x = inX;
 	this.y = inY;
 	this.width = inWidth;
@@ -143,6 +170,8 @@ function Button( inX, inY, inWidth, inHeight, inText, inTooltip, inFunction, inF
 
 	this.text = inText;
 	this.tooltip = inTooltip;
+	this.hotkey = inHotkey;
+
 	this.function = inFunction;
 	this.funcArgs = inFuncArgs;
 }
@@ -290,9 +319,22 @@ Control.prototype.setDetailsTab = function(value) {
 		this.detailsTab = value;
 	}
 }
+Control.prototype.cycleDetailsTab = function() {
+	this.detailsTab++;
+	if (this.detailsTab > 4) { // hardcoded for now
+		this.detailsTab = NONE;
+	}
+}
+Control.prototype.generateWorld = function() {
+	var sim = this.targetSimulation;
+	sim.generateNewPlanet();
+}
 Control.prototype.openMenu = function() {
 	// todo
 	console.log("not implemented yet!");
+}
+Control.prototype.toggleVisibilityFlag = function(value) {
+	this.visibilityFlags[value] = !this.visibilityFlags[value];
 }
 Control.prototype.toggleFullscreen = function() {
 	if (!document.fullscreenElement) {
@@ -355,6 +397,7 @@ Control.prototype.zoomOut = function(focusOnMouse) {
 
 Control.prototype.update = function() {
 	this.handlePanning();
+	this.handleHotkeys();
 }
 Control.prototype.handlePanning = function() {
 	var m = this.mouse;
@@ -386,4 +429,17 @@ Control.prototype.handlePanning = function() {
 		}
 	}
 	this.updateMouse();
+}
+Control.prototype.handleHotkeys = function() {
+	for (var i=0; i<this.button.length; i++) {
+		var b = this.button[i];
+		if (this.keyCodes[b.hotkey] == true) {
+			if (b.hotkey == 'q') { // special case for F1
+				this.cycleDetailsTab();
+			} else {
+				this[b.function](b.funcArgs);
+			}
+			this.keyCodes[b.hotkey] = false;
+		}
+	}
 }
