@@ -2,7 +2,7 @@ const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
-minimap:"#ffffff",
+minimap:"#ffffff", tabBackground:"#ffffff",
 /* Terrain tile colours */
 water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA",
 unseen:"#000000",
@@ -43,9 +43,9 @@ Display.prototype.refresh = function() {
 	this.drawLabels();
 	this.drawMinimap();
 
+	this.drawStats();
 	this.drawButtons();
 	this.drawCursor();
-	this.drawStats();
 	this.drawTooltip();
 }
 Display.prototype.drawTerrain = function() {
@@ -389,53 +389,88 @@ Display.prototype.drawStats = function() {
 	this.ctx.font = "bold 16px Verdana";
 	this.ctx.fillStyle = colour.textBlack;
 
+	// display simulation date
 	this.textCursorX = 50;
 	this.textCursorY = 30;
-
 	this.drawText(printFixedWidthNumber(sim.day)+"/"+printFixedWidthNumber(sim.month)+"/"+printFixedWidthNumber(sim.year)+" "+Math.floor(sim.timer/60)+"s");
 
-	this.textCursorX = 10;
-	this.textCursorY = 60;
-	/*
-	var m = control.mouse;
-	if (m.isOverMap) {
-		this.drawText("mouse map pos: "+printUnitsMeters(m.mapX)+", "+printUnitsMeters(m.mapY));
-	} else {
-		this.drawText("mouse map pos: -, -");
-	}
-	if (m.isOverMinimap) {
-		this.drawText("minimap");
+	if (this.targetControl.detailsTab >= 0) {
+		this.drawDetailsTab();
 	}
 
-	this.drawText("Camera: "+printUnitsMeters(control.cameraX)+", "+printUnitsMeters(control.cameraY));
-	*/
-
-	var planet = this.targetSimulation.planet;
-	var terrain = this.targetSimulation.planet.terrain;
-	var control = this.targetControl;
-	var screenSpan = zoomScales[control.zoomLevel];
-	var incX = this.c.width/screenSpan;
-	var size = Math.floor(planet.gridSize*incX);
-
-	this.drawText("Planet: "+planet.name);
-	this.drawText("Radius: "+printUnitsMeters(planet.radius));
-	this.drawText("Grid size: "+planet.terrain.width+","+planet.terrain.height);
-
-	this.drawText("Tile size: "+size+"px");
-
-	//this.drawText("Tile counts: "+sim.planet.terrain.count);
-	this.drawText("Land: "+sim.planet.terrain.totalLand);
-
-	this.drawText("Factions: "+sim.planet.faction.length);
-
-	this.drawText("Cities: "+sim.planet.structure.length);
-
-	this.drawText("Population: "+sim.planet.totalPop+"M");
 
 	this.textCursorX = this.c.width - 300;
 	this.textCursorY = this.c.height - 15;
 	var zoom = zoomScales[control.zoomLevel];
 	this.drawText("zoom level: "+control.zoomLevel+" ("+printUnitsMeters(zoom)+")");
+}
+Display.prototype.drawDetailsTab = function() {
+	var control = this.targetControl;
+
+	this.ctx.fillStyle = colour.tabBackground;
+	this.ctx.fillRect(4+control.detailsTab*38,42,38,38);
+	this.ctx.fillRect(0,80,200,285);
+
+	this.ctx.font = "bold 16px Verdana";
+	this.ctx.fillStyle = colour.textBlack;
+
+	this.textCursorX = 10;
+	this.textCursorY = 98;
+
+	switch (control.detailsTab) {
+		case detailsID.planet:
+			this.drawPlanetDetails();
+			break;
+		case detailsID.terrain:
+			this.drawTerrainDetails();
+			break;
+		case detailsID.factions:
+			this.drawFactionDetails();
+			break;
+		case detailsID.cities:
+			this.drawCityDetails();
+			break;
+		case detailsID.agents:
+			this.drawAgentDetails();
+			break;
+	}
+}
+Display.prototype.drawPlanetDetails = function() {
+	var p = this.targetSimulation.planet;
+
+	this.drawText("Planet: "+p.name);
+	this.drawText("Radius: "+printUnitsMeters(p.radius));
+
+	var landArea = p.terrain.totalLand*(p.gridSize/1000)*(p.gridSize/1000);
+	this.drawText("Land: "+Math.floor(landArea/1000000)+" Mkm^2");
+	this.drawText("Factions: "+p.faction.length);
+	this.drawText("Cities: "+p.structure.length);
+	this.drawText("Population: "+p.totalPop+" M");
+}
+Display.prototype.drawTerrainDetails = function() {
+	var p = this.targetSimulation.planet;
+	var t = p.terrain;
+
+	this.drawText("Grid size: ("+t.width+","+t.height+")");
+	this.drawText("Tile size: "+printUnitsMeters(p.gridSize));
+	this.drawText("---------");
+
+	var tileNames = Object.keys(tileID);
+	for (var i=0; i<t.count.length; i++) {
+		this.drawText(tileNames[i]+": "+t.count[i]);
+	}
+}
+Display.prototype.drawFactionDetails = function() {
+	var p = this.targetSimulation.planet;
+	this.drawText("Factions: "+p.faction.length);
+}
+Display.prototype.drawCityDetails = function() {
+	var p = this.targetSimulation.planet;
+	this.drawText("Cities: "+p.structure.length);
+}
+Display.prototype.drawAgentDetails = function() {
+	var p = this.targetSimulation.planet;
+	this.drawText("Agents: "+p.agent.length);
 }
 Display.prototype.drawTooltip = function() {
 	this.ctx.font = "bold 16px Verdana";

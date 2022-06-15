@@ -2,6 +2,8 @@ const zoomScales = [
 /* in meters 1m to 100,000 km */
 1,2,5, 10,20,50, 100,200,500, 1000,2000,5000, 10000,20000,50000, 100000,200000,500000, 1000000,2000000,5000000, 10000000,20000000,50000000, 100000000];
 
+const detailsID = {planet:0, terrain:1, factions:2, cities:3, agents:4};
+
 function Control(inSimulation) {
 	this.c = document.getElementById("canvas");
 	this.targetSimulation = inSimulation;
@@ -21,6 +23,8 @@ function Control(inSimulation) {
 	this.buttonGrid = new ButtonGrid(30, 8, this.c);
 	this.createButtons();
 	this.selected = NONE;
+
+	this.detailsTab = detailsID.planet;
 
 	var t = this;
 	this.c.onmousemove = function(e){t.handleMouseMove(e)};
@@ -98,11 +102,24 @@ Control.prototype.makeInterface = function() {
 	var g = this.buttonGrid;
 	// top left
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏸️", "toggle pause","togglePause"));
+	g.shift(0,1);
+
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🌍", "view planet details","setDetailsTab",0));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏞️", "view terrain details","setDetailsTab",1));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚩", "view faction details","setDetailsTab",2));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏢", "view city details","setDetailsTab",3));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⛵️", "view agent details","setDetailsTab",4));
 
 	// top right
 	g.x = this.c.width - (g.size + g.gap);
 	g.y = g.gap;
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu","openMenu"));
+	//this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu","openMenu"));
+	g.shift(-1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔄", "generate new world","generateWorld"));
 
 	// bottom right
 	g.y = this.c.height - (g.size + g.gap);
@@ -194,7 +211,7 @@ Control.prototype.handleMouseDown = function(event) {
 		case mouseClickID.leftClick:
 			if (m.hoveredButton>=0) {
 				var b = this.button[m.hoveredButton];
-				this[b.function](b.functionArguments);
+				this[b.function](b.funcArgs);
 			} else {
 				// handle minimap click
 				if (m.isOverMinimap == true) {
@@ -265,6 +282,13 @@ Control.prototype.handleKeyUp = function(event) {
 Control.prototype.togglePause = function() {
 	var sim = this.targetSimulation;
 	sim.isPaused = !(sim.isPaused);
+}
+Control.prototype.setDetailsTab = function(value) {
+	if (value == this.detailsTab) {
+		this.detailsTab = NONE;
+	} else {
+		this.detailsTab = value;
+	}
 }
 Control.prototype.openMenu = function() {
 	// todo
