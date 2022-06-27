@@ -434,7 +434,7 @@ Control.prototype.handleHotkeys = function() {
 	for (var i=0; i<this.button.length; i++) {
 		var b = this.button[i];
 		if (this.keyCodes[b.hotkey] == true) {
-			if (b.hotkey == 'q') { // special case for F1
+			if (b.hotkey == 'q') { // special case for q
 				this.cycleDetailsTab();
 			} else {
 				this[b.function](b.funcArgs);

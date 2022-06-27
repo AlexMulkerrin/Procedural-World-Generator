@@ -50,18 +50,22 @@ Simulation.prototype.handleIdleAgent = function(a) {
 	var vectors = [[1,0], [0,1], [-1,0], [0,-1], [0.7,0.7], [-0.7,0.7], [0.7,-0.7], [-0.7,-0.7]];
 
 	if (randomInteger(20) == 0) {
-		var vec = randomChoice(vectors);
-		a.vx = vec[0]*20000;
-		a.vy = vec[1]*20000;
-		var targDist = (Math.random()*60+1)*20000;
-		a.targX = a.x + targDist * vec[0];
-		a.targY = a.y + targDist * vec[1];
+		//this.setCourse(a,0,0);
+
+		//var vec = randomChoice(vectors);
+		//a.vx = vec[0]*20000;
+		//a.vy = vec[1]*20000;
+		//var targDist = (Math.random()*60+1)*20000;
+		a.targX = a.x + (Math.random()*120-60)*20000; //targDist * vec[0];
+		a.targY = a.y + (Math.random()*120-60)*20000; //targDist * vec[1];
+		this.setCourse(a,a.targX,a.targY);
 
 		// let agents travel round the world
 		if (a.targX<0) a.targX += this.planet.gridCircumference;
 		if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
 
-		a.state = stateID.moving;
+		//a.state = stateID.moving;
+
 	}
 }
 Simulation.prototype.handleMovingAgent = function(a) {
@@ -89,4 +93,25 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			a.state = stateID.idle;
 		}
 	}
+}
+Simulation.prototype.setCourse = function(a,targX,targY) {
+	a.targX = targX;
+	a.targY = targY;
+	// TODO option to have pathfinding here
+
+	// TODO have variable speeds
+	var speed = 20000;
+
+	var dx = a.targX - a.x;
+	if (dx == 0) dx = 0.0001;
+	var dy = a.targY - a.y;
+	var ratio = dy/dx;
+	var xComponent = Math.sqrt(Math.pow(speed,2)/(1+Math.pow(ratio,2)));
+	if (dx<0) xComponent *= -1;
+
+	a.vx = xComponent;
+	a.vy = ratio * xComponent;
+
+	a.state = stateID.moving;
+
 }

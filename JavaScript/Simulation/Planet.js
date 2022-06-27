@@ -19,6 +19,9 @@ function Planet(inRadius, inRadiusVariation) {
 
 	this.agent = [];
 	this.generateAgents(100);
+
+	this.summary = [];
+	this.generateSummaries();
 }
 Planet.prototype.generateCities = function() {
 	var sites = [];
@@ -82,6 +85,9 @@ Planet.prototype.generateAgents = function(num) {
 
 		this.agent.push(new Agent(x, y, size, locomotionID.ship, factionID));
 	}
+}
+Planet.prototype.generateSummaries = function() {
+
 }
 
 Planet.prototype.checkAgentMove = function(a,nx,ny) {

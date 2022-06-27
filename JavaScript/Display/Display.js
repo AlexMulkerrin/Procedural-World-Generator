@@ -87,11 +87,13 @@ Display.prototype.drawTerrain = function() {
 				this.drawOutline(x+2,y+2,size-4,size-4,2);
 			}
 
+			/*
 			this.ctx.fillStyle = colour.textBlack;
 			if (terrain.tile[i][j].desirability > 0) {
+				console.log("good site here!");
 				this.ctx.fillText(terrain.tile[i][j].desirability-21,x+10,y+20);
 			}
-
+			*/
 		}
 	}
 }
@@ -489,8 +491,9 @@ Display.prototype.drawTooltip = function() {
 	var ctrl = this.targetControl;
 	if (ctrl.mouse.hoveredButton>=0) {
 		var b = ctrl.button[ctrl.mouse.hoveredButton];
+		var text = b.tooltip+" ("+b.hotkey+")";
 
-		var textLength = this.ctx.measureText(b.tooltip).width;
+		var textLength = this.ctx.measureText(text).width;
 		var x = ctrl.mouse.x;
 		if (x > this.c.width/2) x -= (textLength+32);
 		var y = ctrl.mouse.y;
@@ -500,7 +503,7 @@ Display.prototype.drawTooltip = function() {
 		this.ctx.fillRect(x,y, 30+textLength, 35);
 
 		this.ctx.fillStyle = colour.textWhite;
-		this.ctx.fillText(b.tooltip, x+12,y+22);
+		this.ctx.fillText(text, x+12,y+22);
 
 
 	}
