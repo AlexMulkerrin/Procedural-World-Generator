@@ -39,20 +39,28 @@ Simulation.prototype.update = function() {
 Simulation.prototype.updateAgents = function() {
 	for (var i=0; i<this.planet.agent.length; i++) {
 		var a = this.planet.agent[i];
-		if (a.state == stateID.idle) {
-			this.handleIdleAgent(a);
-		} else {
-			this.handleMovingAgent(a);
+		if (a.isAlive == true) {
+			if (a.state == stateID.idle) {
+				this.handleIdleAgent(a);
+			} else {
+				this.handleMovingAgent(a);
+			}
+			if (a.cooldown == 0) {
+				this.handleWeaponFiring(i,a);
+			} else {
+				a.cooldown--;
+			}
 		}
+
+
 	}
 }
 Simulation.prototype.handleIdleAgent = function(a) {
-	var vectors = [[1,0], [0,1], [-1,0], [0,-1], [0.7,0.7], [-0.7,0.7], [0.7,-0.7], [-0.7,-0.7]];
 
 	if (a.isRoaming == true && randomInteger(20) == 0) {
 
-		a.targX = a.x + (Math.random()*120-60)*20000; //targDist * vec[0];
-		a.targY = a.y + (Math.random()*120-60)*20000; //targDist * vec[1];
+		a.targX = a.x + (Math.random()*120-60)*20000;
+		a.targY = a.y + (Math.random()*120-60)*20000;
 		this.setCourse(a,a.targX,a.targY);
 
 		// let agents travel round the world
@@ -86,6 +94,32 @@ Simulation.prototype.handleMovingAgent = function(a) {
 
 		} else {
 			a.state = stateID.idle;
+		}
+	}
+}
+Simulation.prototype.handleWeaponFiring = function(i,a) {
+	var hasFired = false;
+	for (var j=0; j<this.planet.agent.length && hasFired == false; j++) {
+		if (j != i) {
+			var ta = this.planet.agent[j];
+			if (ta.factionID != a.factionID && ta.isAlive == true) {
+				var dx = ta.x - a.x;
+				var dy = ta.y - a.y;
+				var dist = dx*dx + dy*dy;
+				var range = agentTypes[a.type].range;
+				if (dist < (range*range)) {
+					var dam = agentTypes[a.type].damage
+					ta.health -= dam;
+					console.log("Agent "+i+" has shot agent "+j+" for "+dam+" damage!");
+					a.cooldown = agentTypes[a.type].cooldown;
+					hasFired = true;
+					if (ta.health <= 0) {
+						ta.isAlive = false;
+						ta.state = stateID.dead;
+						console.log("Agent "+j+" has been destroyed!");
+					}
+				}
+			}
 		}
 	}
 }

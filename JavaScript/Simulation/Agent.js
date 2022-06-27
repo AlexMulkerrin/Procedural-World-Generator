@@ -1,4 +1,4 @@
-const stateID = { idle:0, moving:1 };
+const stateID = { idle:0, moving:1, hunting:2, dead:3 };
 
 
 function Agent(inX, inY, inType, inFactionID) {
@@ -8,6 +8,9 @@ function Agent(inX, inY, inType, inFactionID) {
 	//this.locomotion = inLocomotion;
 	this.type = inType;
 	this.health = agentTypes[this.type].maxHealth;
+	this.isAlive = true;
+	this.cooldown = 0;
+
 	this.factionID = inFactionID;
 
 	this.state = stateID.idle;

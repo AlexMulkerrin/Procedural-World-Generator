@@ -1,7 +1,7 @@
 const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
-agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", moveOrder:"#A1CDE9",
+agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 minimap:"#ffffff", tabBackground:"#ffffff",
 /* Terrain tile colours */
@@ -259,10 +259,16 @@ Display.prototype.drawAgents = function() {
 		if (r<size) r=size;
 
 		var range = Math.ceil(agentTypes[a.type].range * incX);
-		if (range*2 > r) {
+		if (range*2 > r && a.isAlive == true) {
 			this.ctx.strokeStyle = colour.agentRange;
-			this.drawCircle(x,y,range,1);
+			this.drawCircle(x,y,range);
 		}
+		var radar = Math.ceil(agentTypes[a.type].radar * incX);
+		if (radar*2 > r && a.isAlive == true) {
+			this.ctx.strokeStyle = colour.agentRadar;
+			this.drawCircle(x,y,radar);
+		}
+
 
 		if (a.state == stateID.moving) {
 			this.ctx.fillStyle = colour.moveOrder;
@@ -273,7 +279,11 @@ Display.prototype.drawAgents = function() {
 			this.drawLine(x,y,tx,ty,1);
 		}
 
-		this.ctx.fillStyle = planet.faction[a.factionID].colour;
+		if (a.isAlive == true) {
+			this.ctx.fillStyle = planet.faction[a.factionID].colour;
+		} else {
+			this.ctx.fillStyle = colour.agentWreck;
+		}
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
 		for (var j=0; j<control.selectedAgentList.length; j++) {
