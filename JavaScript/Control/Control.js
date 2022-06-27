@@ -23,7 +23,8 @@ function Control(inSimulation) {
 	this.button = [];
 	this.buttonGrid = new ButtonGrid(30, 8, this.c);
 	this.createButtons();
-	this.selected = NONE;
+
+	this.selectedAgentList = [];
 
 	this.detailsTab = detailsID.planet;
 	this.visibilityFlags = [];
@@ -126,9 +127,11 @@ Control.prototype.makeInterface = function() {
 	// top right
 	g.x = this.c.width - (g.size + g.gap);
 	g.y = g.gap;
-	//this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu",'m',"openMenu"));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu",'m',"openMenu"));
 	g.shift(-1,0);
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔄", "generate new world",'r',"generateWorld"));
+	g.shift(1,1);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚨", "select everything",'e',"selectEverything"));
 
 	// bottom left 🟢⚪️
 	g.x = 248;
@@ -230,6 +233,21 @@ Control.prototype.updateMouse = function() {
 			}
 		}
 	}
+
+	m.hoveredAgentList = [];
+	if (m.isOverMap == true) {
+		for (var i=0; i<p.agent.length; i++) {
+			var a = p.agent[i];
+
+			var screenSpan = zoomScales[this.zoomLevel];
+			var pixel = 3*screenSpan/this.c.width;
+
+			if ( (a.x-a.size)<(m.mapX+pixel) && (a.x+a.size)>(m.mapX-pixel)
+			&& (a.y-a.size)<(m.mapY+pixel) && (a.y+a.size)>(m.mapY-pixel)) {
+				m.hoveredAgentList.push(i);
+			}
+		}
+	}
 }
 Control.prototype.handleMouseDown = function(event) {
 	var m = this.mouse;
@@ -241,22 +259,23 @@ Control.prototype.handleMouseDown = function(event) {
 			if (m.hoveredButton>=0) {
 				var b = this.button[m.hoveredButton];
 				this[b.function](b.funcArgs);
+			} else if (m.isOverMinimap == true) {
+				var p = this.targetSimulation.planet;
+				var sqSize = 3;
+				var x = m.x/sqSize * p.gridSize;
+				var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
+				this.centerCamera(x,y);
 			} else {
-				// handle minimap click
-				if (m.isOverMinimap == true) {
-					var p = this.targetSimulation.planet;
-					var sqSize = 3;
-					var x = m.x/sqSize * p.gridSize;
-					var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
-					this.centerCamera(x,y);
-				}
+				this.selectedAgentList = m.hoveredAgentList;
 			}
 			break;
 		case mouseClickID.middleClick:
 			this.togglePause();
 			break;
-		case mouseClickID.rightClick:
-
+		case mouseClickID.rightClick: // give command to selected agents
+			if (m.isOverMap == true) {
+				this.handleMovementOrder();
+			}
 			break;
 	}
 }
@@ -308,6 +327,32 @@ Control.prototype.handleKeyUp = function(event) {
 	this.keyCodes[keyCode] = false;
 }
 
+Control.prototype.handleMovementOrder = function(event) {
+	var nx = this.mouse.mapX;
+	var ny = this.mouse.mapY;
+	var sim = this.targetSimulation;
+
+	var selectedNum = this.selectedAgentList.length;
+	var formationDepth = Math.ceil(Math.sqrt(selectedNum));
+	var depth = 0;
+	var unitGap = 200;
+
+	var tx = nx;
+	var ty = ny;
+	for (var i=0; i<selectedNum; i++) {
+		var a = sim.planet.agent[this.selectedAgentList[i]];
+		sim.setCourse(a,tx,ty);
+
+		tx += unitGap;
+		depth++;
+		if (depth >= formationDepth) {
+			ty += unitGap;
+			tx -= depth*unitGap;
+			depth = 0;
+		}
+	}
+}
+
 Control.prototype.togglePause = function() {
 	var sim = this.targetSimulation;
 	sim.isPaused = !(sim.isPaused);
@@ -332,6 +377,14 @@ Control.prototype.generateWorld = function() {
 Control.prototype.openMenu = function() {
 	// todo
 	console.log("not implemented yet!");
+}
+Control.prototype.selectEverything = function() {
+	var p = this.targetSimulation.planet;
+
+	this.selectedAgentList = []
+	for (var i=0; i<p.agent.length; i++) {
+		this.selectedAgentList.push(i);
+	}
 }
 Control.prototype.toggleVisibilityFlag = function(value) {
 	this.visibilityFlags[value] = !this.visibilityFlags[value];

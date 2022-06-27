@@ -56,6 +56,8 @@ Simulation.prototype.handleIdleAgent = function(a) {
 		//a.vx = vec[0]*20000;
 		//a.vy = vec[1]*20000;
 		//var targDist = (Math.random()*60+1)*20000;
+
+		/*
 		a.targX = a.x + (Math.random()*120-60)*20000; //targDist * vec[0];
 		a.targY = a.y + (Math.random()*120-60)*20000; //targDist * vec[1];
 		this.setCourse(a,a.targX,a.targY);
@@ -63,7 +65,7 @@ Simulation.prototype.handleIdleAgent = function(a) {
 		// let agents travel round the world
 		if (a.targX<0) a.targX += this.planet.gridCircumference;
 		if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
-
+		*/
 		//a.state = stateID.moving;
 
 	}
@@ -72,8 +74,11 @@ Simulation.prototype.handleMovingAgent = function(a) {
 	var dx = Math.abs(a.targX - a.x);
 	var dy = Math.abs(a.targY - a.y);
 	if (dx<=Math.abs(a.vx) && dy<=Math.abs(a.vy)) {
-		a.x = a.targX;
-		a.y = a.targY;
+		// TODO find closest valid point along course
+		if (this.planet.checkAgentMove(a,a.targX,a.targY) == true) {
+			a.x = a.targX;
+			a.y = a.targY;
+		}
 		a.state = stateID.idle;
 	} else {
 		var nx = a.x + a.vx;

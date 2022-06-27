@@ -14,4 +14,5 @@ function Mouse() {
 	this.isDown = false;
 
 	this.hoveredButton = NONE;
+	this.hoveredAgentList = [];
 }

@@ -260,7 +260,20 @@ Display.prototype.drawAgents = function() {
 		var r = Math.floor(a.size * incX);
 		if (r<size) r=size;
 
+
+
 		this.ctx.fillStyle = colour.agent;
+		for (var j=0; j<control.selectedAgentList.length; j++) {
+			if ( i == control.selectedAgentList[j]) {
+				this.ctx.fillStyle = colour.select;
+			}
+		}
+		for (var j=0; j<control.mouse.hoveredAgentList.length; j++) {
+			if ( i == control.mouse.hoveredAgentList[j]) {
+				this.ctx.fillStyle = colour.highlight;
+			}
+		}
+
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
 		if (a.state == stateID.moving) {
@@ -412,6 +425,7 @@ Display.prototype.drawStats = function() {
 		this.drawDetailsTab();
 	}
 
+	this.drawSelectionTab();
 
 	this.textCursorX = this.c.width - 300;
 	this.textCursorY = this.c.height - 15;
@@ -486,6 +500,24 @@ Display.prototype.drawAgentDetails = function() {
 	var p = this.targetSimulation.planet;
 	this.drawText("Agents: "+p.agent.length);
 }
+
+Display.prototype.drawSelectionTab = function() {
+	var control = this.targetControl;
+
+	this.ctx.fillStyle = colour.tabBackground;
+	var x = this.c.width - 200;
+	this.ctx.fillRect(x,80,200,285);
+
+	this.ctx.font = "bold 16px Verdana";
+	this.ctx.fillStyle = colour.textBlack;
+
+	this.textCursorX = x + 10;
+	this.textCursorY = 98;
+
+	this.drawText("hovered agent: "+ control.mouse.hoveredAgentList);
+	this.drawText("selected agent: "+ control.selectedAgentList);
+}
+
 Display.prototype.drawTooltip = function() {
 	this.ctx.font = "bold 16px Verdana";
 	var ctrl = this.targetControl;
