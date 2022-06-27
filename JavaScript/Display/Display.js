@@ -1,13 +1,14 @@
 const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
+agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", moveOrder:"#A1CDE9",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 minimap:"#ffffff", tabBackground:"#ffffff",
 /* Terrain tile colours */
 water:"#478CC1", deepWater:"#475EC1", grassland:"#B6D53C", desert:"#FFE97F", plains:"#DAFF7F", tundra:"#ABAF69", arctic:"#EAEAEA", hills:"#707244", mountain:"#C0C0C0", forest:"#006329", jungle:"#16BC00", swamp:"#ABAFDA",
 unseen:"#000000",
 /* Terrain objects */
-city:"#FF6A00", road:"#8E5928", field:"#FFBB00", agent:"#ffffff", moveOrder:"#00ff00"};
+city:"#FF6A00", road:"#8E5928", field:"#FFBB00", agent:"#ffffff"};
 
 function Display(inSimulation) {
 	this.targetSimulation = inSimulation;
@@ -254,23 +255,14 @@ Display.prototype.drawAgents = function() {
 		var a = planet.agent[i];
 		var x = Math.floor((a.x - control.cameraX) * incX);
 		var y = Math.floor((a.y - control.cameraY) * incY);
-		var r = Math.floor(a.size * incX);
+		var r = Math.floor(agentTypes[a.type].size * incX);
 		if (r<size) r=size;
 
-		this.ctx.fillStyle = planet.faction[a.factionID].colour;
-
-		for (var j=0; j<control.selectedAgentList.length; j++) {
-			if ( i == control.selectedAgentList[j]) {
-				this.ctx.fillStyle = colour.select;
-			}
+		var range = Math.ceil(agentTypes[a.type].range * incX);
+		if (range*2 > r) {
+			this.ctx.strokeStyle = colour.agentRange;
+			this.drawCircle(x,y,range,1);
 		}
-		for (var j=0; j<control.mouse.hoveredAgentList.length; j++) {
-			if ( i == control.mouse.hoveredAgentList[j]) {
-				this.ctx.fillStyle = colour.highlight;
-			}
-		}
-
-		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
 		if (a.state == stateID.moving) {
 			this.ctx.fillStyle = colour.moveOrder;
@@ -280,6 +272,23 @@ Display.prototype.drawAgents = function() {
 			this.ctx.fillRect(tx-r/2,ty-r/2,r,r);
 			this.drawLine(x,y,tx,ty,1);
 		}
+
+		this.ctx.fillStyle = planet.faction[a.factionID].colour;
+		this.ctx.fillRect(x-r/2,y-r/2,r,r);
+
+		for (var j=0; j<control.selectedAgentList.length; j++) {
+			if ( i == control.selectedAgentList[j]) {
+				this.ctx.fillStyle = colour.agentSelect;
+				this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
+			}
+		}
+		for (var j=0; j<control.mouse.hoveredAgentList.length; j++) {
+			if ( i == control.mouse.hoveredAgentList[j]) {
+				this.ctx.fillStyle = colour.agentHover;
+				this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
+			}
+		}
+
 	}
 }
 
@@ -530,8 +539,22 @@ Display.prototype.drawSelectionTab = function() {
 	this.textCursorX = x + 10;
 	this.textCursorY = 98;
 
-	this.drawText("hovered agent: "+ control.mouse.hoveredAgentList);
-	this.drawText("selected agent: "+ control.selectedAgentList);
+	if (control.mouse.hoveredAgentList.length > 1) {
+		this.drawText("hovered agents: "+ control.mouse.hoveredAgentList.length);
+		this.drawText(control.mouse.hoveredAgentList);
+	} else {
+		this.drawText("hovered agent: "+ control.mouse.hoveredAgentList);
+		this.drawText("");
+	}
+
+	this.drawText("selected faction: "+ control.selectedFaction);
+	if (control.selectedAgentList.length > 1) {
+		this.drawText("selected agents: "+ control.selectedAgentList.length);
+		this.drawText(control.selectedAgentList);
+	} else {
+		this.drawText("selected agent: "+ control.selectedAgentList);
+		this.drawText("");
+	}
 }
 
 Display.prototype.drawTooltip = function() {
@@ -557,6 +580,11 @@ Display.prototype.drawTooltip = function() {
 	}
 }
 
+Display.prototype.drawCircle = function(x,y,radius) {
+	this.ctx.beginPath();
+	this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
+	this.ctx.stroke();
+}
 Display.prototype.drawOutline = function(x,y,width,height,thickness) {
 	this.ctx.fillRect(x,y,width,thickness);
 	this.ctx.fillRect(x,y+height-thickness,width,thickness);

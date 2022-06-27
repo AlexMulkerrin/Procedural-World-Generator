@@ -1,11 +1,13 @@
 const stateID = { idle:0, moving:1 };
-const locomotionID = { ship:0 };
 
-function Agent(inX, inY, inSize, inLocomotion, inFactionID) {
+
+function Agent(inX, inY, inType, inFactionID) {
 	this.x = inX;
 	this.y = inY;
-	this.size = inSize;
-	this.locomotion = inLocomotion;
+	//this.size = inSize;
+	//this.locomotion = inLocomotion;
+	this.type = inType;
+	this.health = agentTypes[this.type].maxHealth;
 	this.factionID = inFactionID;
 
 	this.state = stateID.idle;

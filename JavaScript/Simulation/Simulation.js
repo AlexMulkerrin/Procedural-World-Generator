@@ -95,7 +95,7 @@ Simulation.prototype.setCourse = function(a,targX,targY) {
 	// TODO option to have pathfinding here
 
 	// TODO have variable speeds
-	var speed = 20000;
+	var speed = agentTypes[a.type].speed;
 
 	var dx = a.targX - a.x;
 	if (dx == 0) dx = 0.0001;

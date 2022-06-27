@@ -24,6 +24,7 @@ function Control(inSimulation) {
 	this.buttonGrid = new ButtonGrid(30, 8, this.c);
 	this.createButtons();
 
+	this.selectedFaction = 0;
 	this.selectedAgentList = [];
 
 	this.detailsTab = detailsID.planet;
@@ -153,7 +154,7 @@ Control.prototype.makeInterface = function() {
 	// bottom right
 	g.x = this.c.width - (g.size + g.gap);
 	g.y = this.c.height - (g.size + g.gap);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"↔️", "toggleFullscreen",'f',"toggleFullscreen"));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟦", "toggleFullscreen",'f',"toggleFullscreen"));
 	g.shift(0,-1);
 	if (this.zoomLevel < (zoomScales.length - 1) ) {
 		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out",173,"zoomOut",false));
@@ -262,9 +263,10 @@ Control.prototype.updateMouse = function() {
 
 		var screenSpan = zoomScales[this.zoomLevel];
 		var pixel = 3*screenSpan/this.c.width;
+		var size = agentTypes[a.type].size;
 
-		if ( (a.x-a.size)<(r+pixel) && (a.x+a.size)>(l-pixel)
-		&& (a.y-a.size)<(b+pixel) && (a.y+a.size)>(t-pixel)) {
+		if ( (a.x-size)<(r+pixel) && (a.x+size)>(l-pixel)
+		&& (a.y-size)<(b+pixel) && (a.y+size)>(t-pixel)) {
 			m.hoveredAgentList.push(i);
 		}
 	}
@@ -295,8 +297,14 @@ Control.prototype.handleMouseDown = function(event) {
 			this.togglePause();
 			break;
 		case mouseClickID.rightClick: // give command to selected agents
-			if (m.isOverMap == true) {
-				this.handleMovementOrder();
+			if (m.isOverMinimap == true) {
+				var p = this.targetSimulation.planet;
+				var sqSize = 3;
+				var x = m.x/sqSize * p.gridSize;
+				var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
+				this.handleMovementOrder(x,y);
+			} else if (m.isOverMap == true) {
+				this.handleMovementOrder(m.mapX,m.mapY);
 			}
 			break;
 	}
@@ -305,7 +313,14 @@ Control.prototype.handleMouseUp = function(event) {
 	var m = this.mouse;
 
 	if (m.isDragSelecting == true) {
-		this.selectedAgentList = m.hoveredAgentList;
+		this.selectedAgentList = []
+		for (var i=0; i<m.hoveredAgentList.length; i++) {
+			var index = m.hoveredAgentList[i];
+			var a = this.targetSimulation.planet.agent[index];
+			if (a.factionID == this.selectedFaction) {
+				this.selectedAgentList.push(index);
+			}
+		}
 		m.isDragSelecting = false;
 	}
 	m.whichClick = NONE;
@@ -356,9 +371,7 @@ Control.prototype.handleKeyUp = function(event) {
 	this.keyCodes[keyCode] = false;
 }
 
-Control.prototype.handleMovementOrder = function() {
-	var nx = this.mouse.mapX;
-	var ny = this.mouse.mapY;
+Control.prototype.handleMovementOrder = function(nx,ny) {
 	var sim = this.targetSimulation;
 
 	var selectedNum = this.selectedAgentList.length;
@@ -415,7 +428,10 @@ Control.prototype.selectEverything = function() {
 
 	this.selectedAgentList = []
 	for (var i=0; i<p.agent.length; i++) {
-		this.selectedAgentList.push(i);
+		var a = p.agent[i];
+		if (a.factionID == this.selectedFaction) {
+			this.selectedAgentList.push(i);
+		}
 	}
 }
 Control.prototype.toggleVisibilityFlag = function(value) {

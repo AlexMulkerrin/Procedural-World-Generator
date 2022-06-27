@@ -83,7 +83,7 @@ Planet.prototype.generateAgents = function(num) {
 		var size = 100;
 		var factionID = randomInteger(this.faction.length);
 
-		this.agent.push(new Agent(x, y, size, locomotionID.ship, factionID));
+		this.agent.push(new Agent(x, y, agentTypeID.battleship, factionID));
 	}
 }
 Planet.prototype.generateSummaries = function() {
@@ -95,7 +95,7 @@ Planet.prototype.checkAgentMove = function(a,nx,ny) {
 	var ty = Math.floor(ny/this.gridSize);
 	if (this.terrain.isInBounds(tx,ty) == true) {
 		var t = this.terrain.tile[tx][ty];
-		switch (a.locomotion) {
+		switch (agentTypes[a.type].locomotion) {
 			case locomotionID.ship:
 				if (t.type == tileID.water) {
 					return true;
