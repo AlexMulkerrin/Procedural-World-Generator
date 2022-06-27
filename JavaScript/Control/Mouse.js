@@ -6,7 +6,11 @@ function Mouse() {
 
 	this.mapX = NONE;
 	this.mapY = NONE;
+	this.lastMapX = NONE;
+	this.lastMapY = NONE;
+
 	this.isOverMap = false;
+	this.isDragSelecting = false;
 
 	this.isOverMinimap = false;
 

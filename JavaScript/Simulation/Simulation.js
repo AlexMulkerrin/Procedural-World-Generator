@@ -49,15 +49,8 @@ Simulation.prototype.updateAgents = function() {
 Simulation.prototype.handleIdleAgent = function(a) {
 	var vectors = [[1,0], [0,1], [-1,0], [0,-1], [0.7,0.7], [-0.7,0.7], [0.7,-0.7], [-0.7,-0.7]];
 
-	if (randomInteger(20) == 0) {
-		//this.setCourse(a,0,0);
+	if (a.isRoaming == true && randomInteger(20) == 0) {
 
-		//var vec = randomChoice(vectors);
-		//a.vx = vec[0]*20000;
-		//a.vy = vec[1]*20000;
-		//var targDist = (Math.random()*60+1)*20000;
-
-		/*
 		a.targX = a.x + (Math.random()*120-60)*20000; //targDist * vec[0];
 		a.targY = a.y + (Math.random()*120-60)*20000; //targDist * vec[1];
 		this.setCourse(a,a.targX,a.targY);
@@ -65,9 +58,6 @@ Simulation.prototype.handleIdleAgent = function(a) {
 		// let agents travel round the world
 		if (a.targX<0) a.targX += this.planet.gridCircumference;
 		if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
-		*/
-		//a.state = stateID.moving;
-
 	}
 }
 Simulation.prototype.handleMovingAgent = function(a) {

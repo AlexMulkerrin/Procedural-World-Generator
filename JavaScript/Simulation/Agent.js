@@ -6,9 +6,10 @@ function Agent(inX, inY, inSize, inLocomotion, inFactionID) {
 	this.y = inY;
 	this.size = inSize;
 	this.locomotion = inLocomotion;
-	this.faction = inFactionID;
+	this.factionID = inFactionID;
 
 	this.state = stateID.idle;
+	this.isRoaming = true;
 	this.vx = 0;
 	this.vy = 0;
 	this.targX = 0;

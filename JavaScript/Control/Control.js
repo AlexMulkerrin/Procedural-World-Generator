@@ -224,7 +224,8 @@ Control.prototype.updateMouse = function() {
 			m.isOverMap = false;
 
 			// handle minimap drag
-			if (m.isDown == true && m.whichClick == mouseClickID.leftClick) {
+			if (m.isDown == true && m.whichClick == mouseClickID.leftClick
+				&& m.isDragSelecting == false) {
 				var p = this.targetSimulation.planet;
 				var sqSize = 3;
 				var x = m.x/sqSize * p.gridSize;
@@ -235,17 +236,36 @@ Control.prototype.updateMouse = function() {
 	}
 
 	m.hoveredAgentList = [];
-	if (m.isOverMap == true) {
-		for (var i=0; i<p.agent.length; i++) {
-			var a = p.agent[i];
+	var l,r,t,b = 0;
+	if (m.isDragSelecting == true) {
+		l = m.lastMapX;
+		r = m.mapX;
+		if (l>r) {
+			l = m.mapX;
+			r = m.lastMapX;
+		}
+		t = m.lastMapY;
+		b = m.mapY;
+		if (t>b) {
+			t = m.mapY;
+			b = m.lastMapY;
+		}
+	} else {
+		l = m.mapX;
+		r = m.mapX;
+		t = m.mapY;
+		b = m.mapY;
+	}
 
-			var screenSpan = zoomScales[this.zoomLevel];
-			var pixel = 3*screenSpan/this.c.width;
+	for (var i=0; i<p.agent.length; i++) {
+		var a = p.agent[i];
 
-			if ( (a.x-a.size)<(m.mapX+pixel) && (a.x+a.size)>(m.mapX-pixel)
-			&& (a.y-a.size)<(m.mapY+pixel) && (a.y+a.size)>(m.mapY-pixel)) {
-				m.hoveredAgentList.push(i);
-			}
+		var screenSpan = zoomScales[this.zoomLevel];
+		var pixel = 3*screenSpan/this.c.width;
+
+		if ( (a.x-a.size)<(r+pixel) && (a.x+a.size)>(l-pixel)
+		&& (a.y-a.size)<(b+pixel) && (a.y+a.size)>(t-pixel)) {
+			m.hoveredAgentList.push(i);
 		}
 	}
 }
@@ -266,7 +286,9 @@ Control.prototype.handleMouseDown = function(event) {
 				var y = (m.y - (this.c.height - (p.terrain.height*sqSize))) /sqSize * p.gridSize;
 				this.centerCamera(x,y);
 			} else {
-				this.selectedAgentList = m.hoveredAgentList;
+				m.lastMapX = m.mapX;
+				m.lastMapY = m.mapY;
+				m.isDragSelecting = true;
 			}
 			break;
 		case mouseClickID.middleClick:
@@ -280,8 +302,15 @@ Control.prototype.handleMouseDown = function(event) {
 	}
 }
 Control.prototype.handleMouseUp = function(event) {
-	this.mouse.whichClick = NONE;
-	this.mouse.isDown = false;
+	var m = this.mouse;
+
+	if (m.isDragSelecting == true) {
+		this.selectedAgentList = m.hoveredAgentList;
+		m.isDragSelecting = false;
+	}
+	m.whichClick = NONE;
+	m.isDown = false;
+
 }
 Control.prototype.handleMouseWheel = function(event) {
 	var change = -event.deltaY || event.wheelDelta;
@@ -327,7 +356,7 @@ Control.prototype.handleKeyUp = function(event) {
 	this.keyCodes[keyCode] = false;
 }
 
-Control.prototype.handleMovementOrder = function(event) {
+Control.prototype.handleMovementOrder = function() {
 	var nx = this.mouse.mapX;
 	var ny = this.mouse.mapY;
 	var sim = this.targetSimulation;
@@ -342,6 +371,7 @@ Control.prototype.handleMovementOrder = function(event) {
 	for (var i=0; i<selectedNum; i++) {
 		var a = sim.planet.agent[this.selectedAgentList[i]];
 		sim.setCourse(a,tx,ty);
+		a.isRoaming = false;
 
 		tx += unitGap;
 		depth++;
@@ -373,6 +403,8 @@ Control.prototype.cycleDetailsTab = function() {
 Control.prototype.generateWorld = function() {
 	var sim = this.targetSimulation;
 	sim.generateNewPlanet();
+
+	this.selectedAgentList = [];
 }
 Control.prototype.openMenu = function() {
 	// todo

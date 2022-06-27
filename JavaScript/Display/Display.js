@@ -244,9 +244,6 @@ Display.prototype.drawAgents = function() {
 	var planet = this.targetSimulation.planet;
 	var control = this.targetControl;
 
-	this.ctx.font = "bold 8px Verdana";
-	this.ctx.fillStyle = colour.city;
-
 	var screenSpan = zoomScales[control.zoomLevel];
 	var incX = this.c.width/screenSpan;
 	var incY = incX;
@@ -260,9 +257,8 @@ Display.prototype.drawAgents = function() {
 		var r = Math.floor(a.size * incX);
 		if (r<size) r=size;
 
+		this.ctx.fillStyle = planet.faction[a.factionID].colour;
 
-
-		this.ctx.fillStyle = colour.agent;
 		for (var j=0; j<control.selectedAgentList.length; j++) {
 			if ( i == control.selectedAgentList[j]) {
 				this.ctx.fillStyle = colour.select;
@@ -408,6 +404,26 @@ Display.prototype.drawCursor = function() {
 	var y = Math.floor((m.mapY - control.cameraY) * incY);
 
 	this.ctx.fillRect(x-2,y-2,4,4);
+
+	if (m.isDragSelecting == true) {
+		var lx = Math.floor((m.lastMapX - control.cameraX) * incX);
+		var ly = Math.floor((m.lastMapY - control.cameraY) * incY);
+
+		var l,r,t,b = 0;
+		l = lx;
+		r = x;
+		if (l>r) {
+			l = x;
+			r = lx;
+		}
+		t = ly;
+		b = y;
+		if (t>b) {
+			t = y;
+			b = ly;
+		}
+		this.drawOutline(l,t,r-l,b-t,2);
+	}
 }
 Display.prototype.drawStats = function() {
 	var sim = this.targetSimulation;
