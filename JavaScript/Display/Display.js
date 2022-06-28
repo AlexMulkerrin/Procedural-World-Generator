@@ -82,6 +82,13 @@ Display.prototype.drawTerrain = function() {
 			var y = (j*size) - cy;
 			this.ctx.fillRect(x,y,size,size);
 
+			/*
+			if (terrain.tile[i][j].isShore == true) {
+				this.ctx.fillStyle = colour.error;
+				this.ctx.fillRect(x,y,size,size);
+			}
+			*/
+
 			var cityID = terrain.tile[i][j].cityTerritory;
 			var flag = this.targetControl.visibilityFlags[visibilityID.improvements];
 			if (flag == true && cityID != NONE && terrain.tile[i][j].isFarm) {

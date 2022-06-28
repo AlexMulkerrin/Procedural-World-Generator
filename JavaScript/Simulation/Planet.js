@@ -45,23 +45,7 @@ Planet.prototype.generateCities = function() {
 				index = i;
 			}
 		}
-
-		var id = this.structure.length;
-		var x = sites[index][0] * this.gridSize + Math.floor(this.gridSize/2);
-		var y = sites[index][1] * this.gridSize + Math.floor(this.gridSize/2);
-		var pop = Math.floor(bestValue/2);
-
-		var currentFactionID = this.terrain.tile[sites[index][0]][ sites[index][1]].factionInfluence;
-		if (currentFactionID == NONE) {
-			currentFactionID = this.faction.length;
-
-			this.faction.push(new Faction(currentFactionID));
-		}
-		this.structure.push(new Structure(id, x, y, pop, currentFactionID));
-		this.terrain.setCityTerritory(id, sites[index][0], sites[index][1]);
-		this.terrain.setFactionInfluence(currentFactionID, sites[index][0], sites[index][1]);
-		this.totalPop += pop;
-
+		this.generateCity(sites[index][0], sites[index][1], bestValue);
 
 		var nextSites = [];
 		for (var i=0; i<sites.length; i++) {
@@ -75,6 +59,49 @@ Planet.prototype.generateCities = function() {
 		sites = nextSites;
 	}
 	this.terrain.setRoadConnections();
+}
+Planet.prototype.generateCity = function(tileX, tileY, value) {
+	var id = this.structure.length;
+	var pop = Math.floor(value/2);
+	var x, y = 0;
+
+	// clunky code to place coastal cities on the coast
+	var isHarbour = false;
+	var connections = this.terrain.tile[tileX][tileY].ShoreConnections;
+	if ( connections != NONE) {
+		isHarbour = true;
+		var extent = Math.floor(Math.sqrt(100 * pop * 1000000)/2);
+
+		if ((connections & 1) == 1) { // upwards coast
+			x = tileX * this.gridSize + Math.floor(this.gridSize/2);
+			y = tileY * this.gridSize + extent;
+		} else if ((connections & 2) == 2) { // rightwards coast
+			x = tileX * this.gridSize + this.gridSize - extent;
+			y = tileY * this.gridSize + Math.floor(this.gridSize/2);
+		} else if ((connections & 4) == 4) {  // downwards coast
+			x = tileX * this.gridSize + Math.floor(this.gridSize/2);
+			y = tileY * this.gridSize + this.gridSize - extent;
+		} else if ((connections & 8) == 8) { // leftwards coast
+			x = tileX * this.gridSize + extent;
+			y = tileY * this.gridSize + Math.floor(this.gridSize/2);
+		}
+
+	} else {
+		x = tileX * this.gridSize + Math.floor(this.gridSize/2);
+		y = tileY * this.gridSize + Math.floor(this.gridSize/2);
+	}
+
+
+	var currentFactionID = this.terrain.tile[tileX][tileY].factionInfluence;
+	if (currentFactionID == NONE) {
+		currentFactionID = this.faction.length;
+
+		this.faction.push(new Faction(currentFactionID));
+	}
+	this.structure.push(new Structure(id, x, y, pop, currentFactionID, isHarbour));
+	this.terrain.setCityTerritory(id, tileX, tileY);
+	this.terrain.setFactionInfluence(currentFactionID, tileX, tileY);
+	this.totalPop += pop;
 }
 Planet.prototype.generateAgents = function(num) {
 	// make some ships for naval battles

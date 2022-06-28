@@ -252,7 +252,7 @@ Terrain.prototype.generateRivers = function() { // TODO
 }
 
 Terrain.prototype.identifyCoast = function() {
-	var adj = [ [0,-1], [1,-1], [1,0], [1,1], [0,1], [-1,1], [-1,0], [-1,-1] ];
+	var adj = [ [0,-1], [1,0], [0,1], [-1,0], [1,1], [-1,1], [1,-1], [-1,-1] ];
 	for (var i=0; i<this.width; i++) {
 		for (var j=0; j<this.height; j++) {
 			var t = this.tile[i][j];
@@ -263,14 +263,19 @@ Terrain.prototype.identifyCoast = function() {
 				var nx = i + adj[e][0];
 				var ny = j + adj[e][1];
 				if (this.isInBounds(nx,ny)) {
-					if (isWater) {
+					if (isWater == true) {
 						if (this.tile[nx][ny].type != tileID.water) {
 							t.isCoastalWater = true;
 						}
-					} else {
+					} else if (e<4) { // only count shores on complete edges
 						if (this.tile[nx][ny].type == tileID.water) {
-							t.isShore = true;
+							if (t.ShoreConnections == NONE) {
+								t.ShoreConnections = Math.pow(2, e);
+							} else {
+								t.ShoreConnections += Math.pow(2, e);
+							}
 						}
+
 					}
 				}
 

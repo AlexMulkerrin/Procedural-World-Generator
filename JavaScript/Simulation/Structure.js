@@ -1,5 +1,5 @@
 
-function Structure(inID, inX, inY, inPop, inFactionID) {
+function Structure(inID, inX, inY, inPop, inFactionID, inIsHarbour) {
 	this.id = inID;
 	this.name = randomName();
 	this.x = inX;
@@ -7,4 +7,6 @@ function Structure(inID, inX, inY, inPop, inFactionID) {
 	this.population = inPop;
 	this.extent = Math.sqrt(100 * this.population * 1000000);
 	this.factionID = inFactionID;
+
+	this.isHarbour = inIsHarbour;
 }

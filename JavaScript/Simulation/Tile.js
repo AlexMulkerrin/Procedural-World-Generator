@@ -14,7 +14,7 @@ function Tile() {
 	this.desirability = 0;
 
 	this.isCoastalWater = false;
-	this.isShore = false;
+	this.ShoreConnections = NONE;
 	this.islandID = NONE;
 	this.regionID = NONE;
 
