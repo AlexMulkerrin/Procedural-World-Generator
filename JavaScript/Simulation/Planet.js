@@ -77,15 +77,36 @@ Planet.prototype.generateCities = function() {
 	this.terrain.setRoadConnections();
 }
 Planet.prototype.generateAgents = function(num) {
+	// make some ships for naval battles
+	/*
 	for (var i=0; i<num; i++) {
 		var pos = this.terrain.getValidPosition(locomotionID.ship);
+		var x = pos.x*this.gridSize + randomInteger(this.gridSize);
+		var y = pos.y*this.gridSize + randomInteger(this.gridSize);
+		var factionID = randomInteger(this.faction.length);
+
+		this.agent.push(new Agent(x, y, agentTypeID.battleship, factionID));
+	}
+	*/
+	/*
+	// make some land combat units
+	for (var i=0; i<num; i++) {
+		var pos = this.terrain.getValidPosition(locomotionID.walker);
 		var x = pos.x*this.gridSize + randomInteger(this.gridSize);
 		var y = pos.y*this.gridSize + randomInteger(this.gridSize);
 		var size = 100;
 		var factionID = randomInteger(this.faction.length);
 
-		this.agent.push(new Agent(x, y, agentTypeID.battleship, factionID));
+		this.agent.push(new Agent(x, y, agentTypeID.warrior, factionID));
 	}
+	*/
+	// make city defenders
+	for (var i=0; i<this.structure.length; i++) {
+		var s = this.structure[i];
+		this.agent.push(new Agent(s.x, s.y, agentTypeID.warrior, s.factionID));
+	}
+
+
 }
 
 function Summary() {
@@ -140,6 +161,22 @@ Planet.prototype.checkAgentMove = function(a,nx,ny) {
 					return true;
 				}
 				break;
+		}
+	}
+	return false;
+}
+
+Planet.prototype.checkSameIsland = function(a,nx,ny) {
+	var x = Math.floor(a.x/this.gridSize);
+	var y = Math.floor(a.y/this.gridSize);
+	var tx = Math.floor(nx/this.gridSize);
+	var ty = Math.floor(ny/this.gridSize);
+	if (this.terrain.isInBounds(x,y) == true
+	&& this.terrain.isInBounds(tx,ty) == true) {
+		var t1 = this.terrain.tile[x][y];
+		var t2 = this.terrain.tile[tx][ty];
+		if (t1.islandID == t2.islandID) {
+			return true;
 		}
 	}
 	return false;

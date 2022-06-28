@@ -384,6 +384,7 @@ Control.prototype.handleMovementOrder = function(nx,ny) {
 	for (var i=0; i<selectedNum; i++) {
 		var a = sim.planet.agent[this.selectedAgentList[i]];
 		sim.setCourse(a,tx,ty);
+		a.state = stateID.moving;
 		a.isRoaming = false;
 
 		tx += unitGap;

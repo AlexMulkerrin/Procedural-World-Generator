@@ -42,6 +42,21 @@ Simulation.prototype.updateAgents = function() {
 	for (var i=0; i<this.planet.agent.length; i++) {
 		var a = this.planet.agent[i];
 		if (a.isAlive == true) {
+			switch (a.state) {
+				case stateID.idle:
+					this.handleIdleAgent(a);
+					break;
+				case stateID.moving:
+					this.handleMovingAgent(a);
+					break;
+				case stateID.hunting:
+					this.handleHuntingAgent(a);
+					break;
+				case stateID.alert:
+					this.findTarget(i,a);
+					break;
+			}
+			/*
 			if (a.state == stateID.idle) {
 				this.findTarget(i,a);
 
@@ -49,6 +64,7 @@ Simulation.prototype.updateAgents = function() {
 			} else {
 				this.handleMovingAgent(a);
 			}
+			*/
 
 			if (a.cooldown == 0) {
 				this.handleWeaponFiring(i,a);
@@ -63,7 +79,7 @@ Simulation.prototype.updateAgents = function() {
 Simulation.prototype.handleIdleAgent = function(a) {
 
 	if (a.isRoaming == true && randomInteger(100) == 0) {
-		this.giveRandomCourse();
+		this.giveRandomCourse(a);
 	}
 }
 Simulation.prototype.handleMovingAgent = function(a) {
@@ -75,7 +91,7 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			a.x = a.targX;
 			a.y = a.targY;
 		}
-		a.state = stateID.idle;
+		a.state = stateID.alert;
 	} else {
 		var nx = a.x + a.vx;
 		var ny = a.y + a.vy;
@@ -96,6 +112,16 @@ Simulation.prototype.handleMovingAgent = function(a) {
 		}
 	}
 }
+Simulation.prototype.handleHuntingAgent = function(a) {
+	var p = this.planet;
+	var targ = p.agent[a.targAgentID];
+	if (targ.isAlive == true) {
+		this.setCourse(a,targ.x, targ.y);
+		this.handleMovingAgent(a);
+	} else {
+		a.state = stateID.alert;
+	}
+}
 Simulation.prototype.handleWeaponFiring = function(i,a) {
 	var hasFired = false;
 	for (var j=0; j<this.planet.agent.length && hasFired == false; j++) {
@@ -108,8 +134,8 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 				var range = agentTypes[a.type].range;
 				if (dist < (range*range)) {
 					// cancel orders for both agents
-					a.state = stateID.idle;
-					ta.state = stateID.idle;
+					a.state = stateID.alert;
+					ta.state = stateID.alert;
 
 					var dam = agentTypes[a.type].damage
 					ta.health -= dam;
@@ -130,30 +156,35 @@ Simulation.prototype.giveRandomCourse = function(a) {
 	a.targX = a.x + (Math.random()*120-60)*20000;
 	a.targY = a.y + (Math.random()*120-60)*20000;
 	this.setCourse(a,a.targX,a.targY);
+	a.state = stateID.moving;
 
 	// let agents travel round the world
 	if (a.targX<0) a.targX += this.planet.gridCircumference;
 	if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
 }
 Simulation.prototype.findTarget = function(i,a) {
-	var closest = NONE;
+	var closestDist = NONE;
+	var closestID = NONE;
 	var dx, dy = 0;
 	var tx, ty = 0;
 	for (var j=0; j<this.planet.agent.length; j++) {
 		if (j != i) {
 			var ta = this.planet.agent[j];
-			if (ta.factionID != a.factionID && ta.isAlive == true) {
-				if (closest == NONE) {
+			if (ta.factionID != a.factionID && ta.isAlive == true
+				&& this.planet.checkSameIsland(a,ta.x,ta.y)) {
+				if (closestID == NONE) {
 					dx = a.x - ta.x;
 					dy = a.y - ta.y;
-					closest = dx*dx + dy*dy;
+					closestDist = dx*dx + dy*dy;
+					closestID = j;
 					tx = ta.x;
 					ty = ta.y;
 				} else {
 					dx = a.x - ta.x;
 					dy = a.y - ta.y;
-					if ((dx*dx+dy*dy)<closest) {
-						closest = dx*dx + dy*dy;
+					if ((dx*dx+dy*dy)<closestDist) {
+						closestDist = dx*dx + dy*dy;
+						closestID = j;
 						tx = ta.x;
 						ty = ta.y;
 					}
@@ -161,10 +192,13 @@ Simulation.prototype.findTarget = function(i,a) {
 			}
 		}
 	}
-	if (closest == NONE) {
+	if (closestID == NONE) {
+		a.state = stateID.idle;
 		this.handleIdleAgent(a);
 	} else {
 		this.setCourse(a, tx, ty);
+		a.state = stateID.hunting;
+		a.targAgentID = closestID;
 	}
 }
 Simulation.prototype.setCourse = function(a,targX,targY) {
@@ -184,9 +218,6 @@ Simulation.prototype.setCourse = function(a,targX,targY) {
 
 	a.vx = xComponent;
 	a.vy = ratio * xComponent;
-
-	a.state = stateID.moving;
-
 }
 
 Simulation.prototype.updateFactions = function() {
