@@ -317,7 +317,7 @@ Control.prototype.handleMouseUp = function(event) {
 		for (var i=0; i<m.hoveredAgentList.length; i++) {
 			var index = m.hoveredAgentList[i];
 			var a = this.targetSimulation.planet.agent[index];
-			if (a.factionID == this.selectedFaction) {
+			if (a.factionID == this.selectedFaction && a.isAlive == true) {
 				this.selectedAgentList.push(index);
 			}
 		}
@@ -498,6 +498,16 @@ Control.prototype.zoomOut = function(focusOnMouse) {
 }
 
 Control.prototype.update = function() {
+	var p = this.targetSimulation.planet;
+	var nextList = [];
+	for (var i=0; i<this.selectedAgentList.length; i++) {
+		var a = p.agent[this.selectedAgentList[i]];
+		if (a.isAlive == true) {
+			nextList.push(this.selectedAgentList[i]);
+		}
+	}
+	this.selectedAgentList = nextList;
+
 	this.handlePanning();
 	this.handleHotkeys();
 }

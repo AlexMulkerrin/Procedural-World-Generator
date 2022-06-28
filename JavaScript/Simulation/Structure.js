@@ -9,4 +9,7 @@ function Structure(inID, inX, inY, inPop, inFactionID, inIsHarbour) {
 	this.factionID = inFactionID;
 
 	this.isHarbour = inIsHarbour;
+	this.currentConstruction = NONE;
+	this.constructionProgress = 0;
+	this.constructionTarget = 0;
 }

@@ -14,7 +14,7 @@ function Planet(inRadius, inRadiusVariation) {
 
 	this.structure = [];
 	this.faction = [];
-	this.totalPop =0;
+	this.totalPop = 0;
 	this.generateCities();
 
 	this.agent = [];
@@ -130,7 +130,9 @@ Planet.prototype.generateAgents = function(num) {
 	// make city defenders
 	for (var i=0; i<this.structure.length; i++) {
 		var s = this.structure[i];
-		this.agent.push(new Agent(s.x, s.y, agentTypeID.warrior, s.factionID));
+		if (s.isHarbour == true) {
+			this.agent.push(new Agent(s.x, s.y, agentTypeID.galley, s.factionID));
+		}
 	}
 
 
@@ -179,7 +181,10 @@ Planet.prototype.checkAgentMove = function(a,nx,ny) {
 		var t = this.terrain.tile[tx][ty];
 		switch (agentTypes[a.type].locomotion) {
 			case locomotionID.ship:
+			case locomotionID.boat:
 				if (t.type == tileID.water) {
+					return true;
+				} else if (this.checkWithinCityBounds(nx,ny) == true) {
 					return true;
 				}
 				break;
@@ -188,6 +193,16 @@ Planet.prototype.checkAgentMove = function(a,nx,ny) {
 					return true;
 				}
 				break;
+		}
+	}
+	return false;
+}
+Planet.prototype.checkWithinCityBounds = function(nx,ny) {
+	for (var i=0; i<this.structure.length; i++) {
+		var s = this.structure[i];
+		if (nx>(s.x-s.extent/2) && nx<(s.x+s.extent/2)
+		&& ny>(s.y-s.extent/2) && ny<(s.y+s.extent/2) ) {
+			return true;
 		}
 	}
 	return false;

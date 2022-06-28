@@ -182,9 +182,17 @@ Display.prototype.drawCities = function() {
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
 		this.ctx.fillStyle = colour.textBlack;
-		this.ctx.fillText(c.name+" "+c.population,x+1,y+2);
+		var text1 = c.name+" "+c.population;
+		var text2 = "none";
+		if (c.currentConstruction != NONE) {
+			text2 = agentTypes[c.currentConstruction].name+" "+Math.floor(c.constructionProgress*100/c.constructionTarget)+"%";
+		}
+
+		this.ctx.fillText(text1,x+1,y+2);
+		this.ctx.fillText(text2,x+1,y+14);
 		this.ctx.fillStyle = colour.textCyan;
-		this.ctx.fillText(c.name+" "+c.population,x,y);
+		this.ctx.fillText(text1,x,y);
+		this.ctx.fillText(text2,x,y+12);
 
 	}
 }
@@ -587,6 +595,7 @@ Display.prototype.drawAgentDetails = function() {
 
 Display.prototype.drawSelectionTab = function() {
 	var control = this.targetControl;
+	var p = this.targetSimulation.planet;
 
 	this.ctx.fillStyle = colour.tabBackground;
 	var x = this.c.width - 200;
@@ -598,21 +607,37 @@ Display.prototype.drawSelectionTab = function() {
 	this.textCursorX = x + 10;
 	this.textCursorY = 98;
 
-	if (control.mouse.hoveredAgentList.length > 1) {
-		this.drawText("hovered agents: "+ control.mouse.hoveredAgentList.length);
-		this.drawText(control.mouse.hoveredAgentList);
+	var hovered = control.mouse.hoveredAgentList;
+	if (hovered.length > 1) {
+		this.drawText("hovered agents: " + hovered.length);
+		for (var i=0; i<hovered.length; i++) {
+			var a = p.agent[hovered[i]];
+			this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+		}
+	} else if (hovered.length == 1) {
+		this.drawText("hovered agent:");
+		var a = p.agent[hovered[0]];
+		this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
 	} else {
-		this.drawText("hovered agent: "+ control.mouse.hoveredAgentList);
-		this.drawText("");
+		this.drawText("hovered agent:");
+		this.drawText("none");
 	}
 
+	var selected = control.selectedAgentList;
 	this.drawText("selected faction: "+ control.selectedFaction);
-	if (control.selectedAgentList.length > 1) {
-		this.drawText("selected agents: "+ control.selectedAgentList.length);
-		this.drawText(control.selectedAgentList);
+	if (selected.length > 1) {
+		this.drawText("selected agents: " + selected.length);
+		for (var i=0; i<selected.length; i++) {
+			var a = p.agent[selected[i]];
+			this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+		}
+	} else if (selected.length == 1) {
+		this.drawText("selected agent:");
+		var a = p.agent[selected[0]];
+		this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
 	} else {
-		this.drawText("selected agent: "+ control.selectedAgentList);
-		this.drawText("");
+		this.drawText("selected agent:");
+		this.drawText("none");
 	}
 }
 

@@ -24,6 +24,7 @@ Simulation.prototype.update = function() {
 
 	if (this.isPaused == false) {
 		this.updateAgents();
+		this.updateStructures();
 		this.updateFactions();
 		this.planet.generateSummary();
 
@@ -220,6 +221,29 @@ Simulation.prototype.setCourse = function(a,targX,targY) {
 	a.vy = ratio * xComponent;
 }
 
+Simulation.prototype.updateStructures = function() {
+	var p = this.planet;
+	for (var i=0; i<p.structure.length; i++) {
+		var s = p.structure[i];
+
+		if (s.currentConstruction == NONE) {
+			if (s.isHarbour == true) {
+				s.currentConstruction = 10;
+			} else {
+				s.currentConstruction = randomInteger(10);
+			}
+			s.constructionTarget = agentTypes[s.currentConstruction].cost*300;
+		} else {
+			s.constructionProgress += s.population;
+			if (s.constructionProgress >= s.constructionTarget) {
+				s.constructionProgress = 0;
+				p.agent.push(new Agent(s.x, s.y, s.currentConstruction, s.factionID));
+				s.currentConstruction = NONE;
+			}
+		}
+	}
+}
+
 Simulation.prototype.updateFactions = function() {
 	var p = this.planet;
 	for (var i=0; i<p.faction.length; i++) {
@@ -241,7 +265,7 @@ Simulation.prototype.updateFactions = function() {
 					f.totalAgents++;
 				}
 			}
-			if (f.totalAgents<1) {
+			if (f.totalAgents<1 && f.totalStructures<1) {
 				f.isAlive = false;
 			}
 
