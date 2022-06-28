@@ -20,8 +20,9 @@ function Planet(inRadius, inRadiusVariation) {
 	this.agent = [];
 	this.generateAgents(100);
 
-	this.summary = [];
-	this.generateSummaries();
+	this.summary = new Summary();
+	this.generateSummary();
+
 }
 Planet.prototype.generateCities = function() {
 	var sites = [];
@@ -86,8 +87,41 @@ Planet.prototype.generateAgents = function(num) {
 		this.agent.push(new Agent(x, y, agentTypeID.battleship, factionID));
 	}
 }
-Planet.prototype.generateSummaries = function() {
 
+function Summary() {
+	this.agentSum = 0;
+	this.agentTotals = [];
+
+	this.factionSum = 0;
+	this.factionTotals = [];
+}
+
+Planet.prototype.generateSummary = function() {
+	this.summary.agentSum = 0;
+	this.summary.agentTotals = [];
+	for (var i=0; i<this.faction.length; i++) {
+		var f = this.faction[i];
+		this.summary.agentSum += f.totalAgents;
+		this.summary.agentTotals.push([i,f.totalAgents]);
+	}
+	this.summary.agentTotals.sort(function(a, b){return b[1] - a[1]});
+/*
+	this.summary.factionSum = 0;
+	this.summary.factionTotals = [];
+	for (var i=0; i<this.faction.length; i++) {
+
+		this.summary.agentTotals.push([i,0]);
+	}
+	for (var i=0; i<this.agent.length; i++) {
+		var a = this.agent[i];
+		if (a.isAlive == true) {
+			var f = this.agent[i].factionID;
+			this.summary.agentTotals[f][1]++;
+			this.summary.agentSum++;
+		}
+	}
+	this.summary.agentTotals.sort(function(a, b){return b[1] - a[1]});
+	*/
 }
 
 Planet.prototype.checkAgentMove = function(a,nx,ny) {

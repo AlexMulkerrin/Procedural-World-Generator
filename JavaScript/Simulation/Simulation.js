@@ -24,6 +24,8 @@ Simulation.prototype.update = function() {
 
 	if (this.isPaused == false) {
 		this.updateAgents();
+		this.updateFactions();
+		this.planet.generateSummary();
 
 		this.day++;
 		if (this.day>=30) {
@@ -41,10 +43,13 @@ Simulation.prototype.updateAgents = function() {
 		var a = this.planet.agent[i];
 		if (a.isAlive == true) {
 			if (a.state == stateID.idle) {
-				this.handleIdleAgent(a);
+				this.findTarget(i,a);
+
+				//this.handleIdleAgent(a);
 			} else {
 				this.handleMovingAgent(a);
 			}
+
 			if (a.cooldown == 0) {
 				this.handleWeaponFiring(i,a);
 			} else {
@@ -57,15 +62,8 @@ Simulation.prototype.updateAgents = function() {
 }
 Simulation.prototype.handleIdleAgent = function(a) {
 
-	if (a.isRoaming == true && randomInteger(20) == 0) {
-
-		a.targX = a.x + (Math.random()*120-60)*20000;
-		a.targY = a.y + (Math.random()*120-60)*20000;
-		this.setCourse(a,a.targX,a.targY);
-
-		// let agents travel round the world
-		if (a.targX<0) a.targX += this.planet.gridCircumference;
-		if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
+	if (a.isRoaming == true && randomInteger(100) == 0) {
+		this.giveRandomCourse();
 	}
 }
 Simulation.prototype.handleMovingAgent = function(a) {
@@ -92,8 +90,9 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			if (a.x<0) a.x += this.planet.gridCircumference;
 			if (a.x>=this.planet.gridCircumference) a.x -= this.planet.gridCircumference;
 
-		} else {
-			a.state = stateID.idle;
+		} else { // collides
+			this.giveRandomCourse(a);
+			//a.state = stateID.idle;
 		}
 	}
 }
@@ -108,6 +107,10 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 				var dist = dx*dx + dy*dy;
 				var range = agentTypes[a.type].range;
 				if (dist < (range*range)) {
+					// cancel orders for both agents
+					a.state = stateID.idle;
+					ta.state = stateID.idle;
+
 					var dam = agentTypes[a.type].damage
 					ta.health -= dam;
 					console.log("Agent "+i+" has shot agent "+j+" for "+dam+" damage!");
@@ -121,6 +124,47 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 				}
 			}
 		}
+	}
+}
+Simulation.prototype.giveRandomCourse = function(a) {
+	a.targX = a.x + (Math.random()*120-60)*20000;
+	a.targY = a.y + (Math.random()*120-60)*20000;
+	this.setCourse(a,a.targX,a.targY);
+
+	// let agents travel round the world
+	if (a.targX<0) a.targX += this.planet.gridCircumference;
+	if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
+}
+Simulation.prototype.findTarget = function(i,a) {
+	var closest = NONE;
+	var dx, dy = 0;
+	var tx, ty = 0;
+	for (var j=0; j<this.planet.agent.length; j++) {
+		if (j != i) {
+			var ta = this.planet.agent[j];
+			if (ta.factionID != a.factionID && ta.isAlive == true) {
+				if (closest == NONE) {
+					dx = a.x - ta.x;
+					dy = a.y - ta.y;
+					closest = dx*dx + dy*dy;
+					tx = ta.x;
+					ty = ta.y;
+				} else {
+					dx = a.x - ta.x;
+					dy = a.y - ta.y;
+					if ((dx*dx+dy*dy)<closest) {
+						closest = dx*dx + dy*dy;
+						tx = ta.x;
+						ty = ta.y;
+					}
+				}
+			}
+		}
+	}
+	if (closest == NONE) {
+		this.handleIdleAgent(a);
+	} else {
+		this.setCourse(a, tx, ty);
 	}
 }
 Simulation.prototype.setCourse = function(a,targX,targY) {
@@ -143,4 +187,33 @@ Simulation.prototype.setCourse = function(a,targX,targY) {
 
 	a.state = stateID.moving;
 
+}
+
+Simulation.prototype.updateFactions = function() {
+	var p = this.planet;
+	for (var i=0; i<p.faction.length; i++) {
+		var f = p.faction[i];
+		if (f.isAlive == true) {
+			f.totalStructures = 0;
+			f.totalPop = 0;
+			for (var j=0; j<p.structure.length; j++) {
+				var s = p.structure[j];
+				if (s.factionID == i) {
+					f.totalStructures++;
+					f.totalPop += s.population;
+				}
+			}
+			f.totalAgents = 0;
+			for (var j=0; j<p.agent.length; j++) {
+				var a = p.agent[j];
+				if (a.factionID == i && a.isAlive == true) {
+					f.totalAgents++;
+				}
+			}
+			if (f.totalAgents<1) {
+				f.isAlive = false;
+			}
+
+		}
+	}
 }

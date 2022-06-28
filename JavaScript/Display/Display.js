@@ -1,6 +1,7 @@
 const colour = {
 /* Interface elements */
-background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
+background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", textRed:"#ff0000",
+ point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
 agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 minimap:"#ffffff", tabBackground:"#ffffff",
@@ -263,11 +264,13 @@ Display.prototype.drawAgents = function() {
 			this.ctx.strokeStyle = colour.agentRange;
 			this.drawCircle(x,y,range);
 		}
+		/*
 		var radar = Math.ceil(agentTypes[a.type].radar * incX);
 		if (radar*2 > r && a.isAlive == true) {
 			this.ctx.strokeStyle = colour.agentRadar;
 			this.drawCircle(x,y,radar);
 		}
+		*/
 
 
 		if (a.state == stateID.moving) {
@@ -525,7 +528,17 @@ Display.prototype.drawTerrainDetails = function() {
 }
 Display.prototype.drawFactionDetails = function() {
 	var p = this.targetSimulation.planet;
-	this.drawText("Factions: "+p.faction.length);
+	this.drawText("Total factions: "+p.faction.length);
+	for (var i=0; i<p.faction.length; i++) {
+		var f = p.faction[i];
+		if (f.isAlive == true) {
+			this.ctx.fillStyle = colour.textBlack;
+		} else {
+			this.ctx.fillStyle = colour.textRed;
+		}
+		this.drawText(f.name+": C:"+f.totalStructures+" ("+f.totalPop+"M) "+f.totalAgents);
+
+	}
 }
 Display.prototype.drawCityDetails = function() {
 	var p = this.targetSimulation.planet;
@@ -533,7 +546,31 @@ Display.prototype.drawCityDetails = function() {
 }
 Display.prototype.drawAgentDetails = function() {
 	var p = this.targetSimulation.planet;
-	this.drawText("Agents: "+p.agent.length);
+	var selectedFaction = this.targetControl.selectedFaction;
+	this.drawText("Total agents: "+p.summary.agentSum);
+
+
+	for (var i=0; i<p.summary.agentTotals.length && i<12; i++) {
+		var t = p.summary.agentTotals[i];
+		if (t[1]>0) {
+			if (t[0] == selectedFaction) {
+				this.drawText(p.faction[t[0]].name+" (you): "+t[1]);
+			} else {
+				this.drawText(p.faction[t[0]].name+" ("+t[0]+"): "+t[1]);
+			}
+		}
+	}
+	var other = 0;
+	for (var i=12; i<p.summary.agentTotals.length; i++) {
+		var t = p.summary.agentTotals[i];
+		if (t[1]>0) {
+			other += t[1];
+
+		}
+	}
+	if (other>0) {
+	this.drawText("other: "+other);
+	}
 }
 
 Display.prototype.drawSelectionTab = function() {
