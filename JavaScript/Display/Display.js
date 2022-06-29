@@ -596,6 +596,7 @@ Display.prototype.drawAgentDetails = function() {
 Display.prototype.drawSelectionTab = function() {
 	var control = this.targetControl;
 	var p = this.targetSimulation.planet;
+	var m = control.mouse;
 
 	this.ctx.fillStyle = colour.tabBackground;
 	var x = this.c.width - 200;
@@ -606,6 +607,40 @@ Display.prototype.drawSelectionTab = function() {
 
 	this.textCursorX = x + 10;
 	this.textCursorY = 98;
+
+	this.drawText("tile details:");
+	if (m.isOverMap == true) {
+		var t = p.terrain.tile[m.tileX][m.tileY];
+		var typeName = Object.keys(tileID)[t.type];
+		this.drawText(typeName);
+
+		var r = p.terrain.regionDetails;
+		this.drawText(r[t.islandID].name);
+		if (t.regionID != NONE) {
+			this.drawText(r[t.regionID].name);
+		} else {
+			if (t.isCoastalWater == true) {
+				this.drawText("coastal water");
+			} else {
+				this.drawText("deep water");
+			}
+		}
+
+		if (t.cityTerritory != NONE) {
+			this.drawText(p.structure[t.cityTerritory].name+" city region");
+		} else {
+			this.drawText("no nearby city");
+		}
+
+		if (t.factionInfluence != NONE) {
+			this.drawText(p.faction[t.factionInfluence].name+" territory");
+		} else {
+			this.drawText("unowned");
+		}
+
+	} else {
+		this.drawText("none");
+	}
 
 	var hovered = control.mouse.hoveredAgentList;
 	if (hovered.length > 1) {

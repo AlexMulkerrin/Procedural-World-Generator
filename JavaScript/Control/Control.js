@@ -217,6 +217,11 @@ Control.prototype.updateMouse = function() {
 		m.isOverMap = false;
 	}
 
+	if (m.isOverMap == true) {
+		m.tileX = Math.floor(m.mapX/p.gridSize);
+		m.tileY = Math.floor(m.mapY/p.gridSize);
+	}
+
 	var sqSize = 3;
 	m.isOverMinimap = false;
 	if (m.hoveredButton == NONE) {

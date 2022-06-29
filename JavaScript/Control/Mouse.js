@@ -9,6 +9,9 @@ function Mouse() {
 	this.lastMapX = NONE;
 	this.lastMapY = NONE;
 
+	this.tileX = NONE;
+	this.tileY = NONE;
+
 	this.isOverMap = false;
 	this.isDragSelecting = false;
 
