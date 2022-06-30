@@ -535,6 +535,7 @@ Display.prototype.drawPlanetDetails = function() {
 
 	var landArea = p.terrain.totalLand*(p.gridSize/1000)*(p.gridSize/1000);
 	this.drawText("Land: "+Math.floor(landArea/1000000)+" Mkm^2");
+	this.drawText("Islands: "+p.terrain.numIslands);
 	this.drawText("Factions: "+p.faction.length);
 	this.drawText("Cities: "+p.structure.length);
 	this.drawText("Population: "+p.totalPop+" M");
@@ -554,21 +555,55 @@ Display.prototype.drawTerrainDetails = function() {
 }
 Display.prototype.drawFactionDetails = function() {
 	var p = this.targetSimulation.planet;
-	this.drawText("Total factions: "+p.faction.length);
-	for (var i=0; i<p.faction.length; i++) {
-		var f = p.faction[i];
-		if (f.isAlive == true) {
-			this.ctx.fillStyle = colour.textBlack;
-		} else {
-			this.ctx.fillStyle = colour.textRed;
-		}
-		this.drawText(f.name+": C:"+f.totalStructures+" ("+f.totalPop+"M) "+f.totalAgents);
+	var selectedFaction = this.targetControl.selectedFaction;
+	this.drawText("Total factions: "+p.summary.factionSum);
 
+	for (var i=0; i<p.summary.factionTotals.length && i<11; i++) {
+		var t = p.summary.factionTotals[i];
+		var f = p.faction[t[0]];
+		if (t[0] == selectedFaction) {
+			this.drawText(f.name+" (you): C:"+f.totalStructures+" A:"+f.totalAgents);
+		} else {
+			this.drawText(f.name+": C:"+f.totalStructures+" A:"+f.totalAgents);
+		}
 	}
+	var other = 0;
+	for (var i=11; i<p.summary.factionTotals.length; i++) {
+		other++;
+	}
+	if (other>0) {
+		this.drawText("other: "+other);
+	}
+	this.drawText("defeated: "+(p.faction.length-p.summary.factionSum));
+
 }
 Display.prototype.drawCityDetails = function() {
 	var p = this.targetSimulation.planet;
-	this.drawText("Cities: "+p.structure.length);
+	var selectedFaction = this.targetControl.selectedFaction;
+	this.drawText("Total cities: "+p.summary.structureSum);
+
+
+	for (var i=0; i<p.summary.structureTotals.length && i<12; i++) {
+		var t = p.summary.structureTotals[i];
+		var s = p.structure[t[0]];
+		if (t[1]>0) {
+			if (t[0] == selectedFaction) {
+				this.drawText(s.name+" (you): "+s.population+"M");
+			} else {
+				this.drawText(s.name+" "+s.population+"M");
+			}
+		}
+	}
+	var other = 0;
+	var otherPop = 0;
+	for (var i=12; i<p.summary.structureTotals.length; i++) {
+		var t = p.summary.structureTotals[i][1];
+		otherPop += t;
+		other ++;
+	}
+	if (other>0) {
+	this.drawText("other: "+other+" "+otherPop+"M");
+	}
 }
 Display.prototype.drawAgentDetails = function() {
 	var p = this.targetSimulation.planet;

@@ -7,6 +7,7 @@ function Faction(inID) {
 	this.totalStructures = 0;
 	this.totalPop = 0;
 	this.totalAgents = 0;
+	this.totalArea = 0;
 
 	this.isAlive = true;
 }

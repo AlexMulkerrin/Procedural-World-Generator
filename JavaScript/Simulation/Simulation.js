@@ -218,8 +218,25 @@ Simulation.prototype.findTarget = function(i,a) {
 	var isTargettingStructure = false;
 	for (var j=0; j<this.planet.structure.length; j++) {
 		var sa = this.planet.structure[j];
-		if (sa.factionID != a.factionID && sa.isAlive == true
-		) { //&& this.planet.checkSameIsland(a,sa.x,sa.y)) {
+
+		var isValidTarget = false;
+		if (sa.factionID != a.factionID && sa.isAlive == true) {
+			switch (agentTypes[a.type].locomotion) {
+				case locomotionID.ship:
+				case locomotionID.boat:
+					if (sa.isHarbour) {
+						isValidTarget = true;
+					}
+					break;
+				default:
+					if (this.planet.checkSameIsland(a,sa.x,sa.y)) {
+						isValidTarget = true;
+					}
+					break;
+			}
+		}
+		
+		if (isValidTarget == true) {
 			if (closestID == NONE) {
 				dx = a.x - sa.x;
 				dy = a.y - sa.y;

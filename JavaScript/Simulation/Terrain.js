@@ -33,6 +33,7 @@ function Terrain(inWidth, inHeight) {
 
 	this.regionDetails = [];
 	this.identifyIslands();
+	this.numIslands = this.regionDetails.length;
 	this.identifyWaters();
 	this.identifyRegions();
 

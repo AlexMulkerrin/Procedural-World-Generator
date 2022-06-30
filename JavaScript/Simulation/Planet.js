@@ -133,7 +133,7 @@ Planet.prototype.generateAgents = function(num) {
 
 		if (s.isHarbour == true) {
 			this.agent.push(new Agent(s.x, s.y, agentTypeID.galley, s.factionID));
-		} 
+		}
 		this.agent.push(new Agent(s.x, s.y, agentTypeID.warrior, s.factionID));
 	}
 
@@ -146,6 +146,9 @@ function Summary() {
 
 	this.factionSum = 0;
 	this.factionTotals = [];
+
+	this.structureSum = 0;
+	this.structureTotals = [];
 }
 
 Planet.prototype.generateSummary = function() {
@@ -157,23 +160,31 @@ Planet.prototype.generateSummary = function() {
 		this.summary.agentTotals.push([i,f.totalAgents]);
 	}
 	this.summary.agentTotals.sort(function(a, b){return b[1] - a[1]});
-/*
+
 	this.summary.factionSum = 0;
 	this.summary.factionTotals = [];
 	for (var i=0; i<this.faction.length; i++) {
-
-		this.summary.agentTotals.push([i,0]);
-	}
-	for (var i=0; i<this.agent.length; i++) {
-		var a = this.agent[i];
-		if (a.isAlive == true) {
-			var f = this.agent[i].factionID;
-			this.summary.agentTotals[f][1]++;
-			this.summary.agentSum++;
+		var f = this.faction[i];
+		if (f.isAlive == true) {
+			this.summary.factionSum++;
+			this.summary.factionTotals.push([i,f.totalPop]);
 		}
+
 	}
-	this.summary.agentTotals.sort(function(a, b){return b[1] - a[1]});
-	*/
+	this.summary.factionTotals.sort(function(a, b){return b[1] - a[1]});
+
+	this.summary.structureSum = 0;
+	this.summary.structureTotals = [];
+	for (var i=0; i<this.structure.length; i++) {
+		var s = this.structure[i];
+		if (s.isAlive == true) {
+			this.summary.structureSum++;
+			this.summary.structureTotals.push([i,s.population]);
+		}
+
+	}
+	this.summary.structureTotals.sort(function(a, b){return b[1] - a[1]});
+
 }
 
 Planet.prototype.checkAgentMove = function(a,nx,ny) {
