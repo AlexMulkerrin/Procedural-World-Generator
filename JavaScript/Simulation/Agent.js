@@ -1,4 +1,4 @@
-const stateID = { idle:0, moving:1, hunting:2, alert:3, dead:3 };
+const stateID = { idle:0, moving:1, hunting:2, capturing:3, alert:4, dead:5 };
 
 
 function Agent(inX, inY, inType, inFactionID) {

@@ -549,6 +549,23 @@ Terrain.prototype.setFactionInfluence = function(id, x, y) {
 		}
 	}
 }
+Terrain.prototype.wipeFactionInfluence = function(id, x, y) {
+	var radius = 5;
+	var cutoff = radius*radius+1;
+	for (var i= -radius; i<=radius; i++) {
+		for (var j= -radius; j<=radius; j++) {
+			if (i*i+j*j <= cutoff) {
+				var nx = x + i;
+				var ny = y + j;
+				if (this.isInBounds(nx,ny)
+				&& this.tile[nx][ny].type != tileID.water
+				&& this.tile[nx][ny].factionInfluence == id) {
+					this.tile[nx][ny].factionInfluence = NONE;
+				}
+			}
+		}
+	}
+}
 Terrain.prototype.setRoadConnections = function() {
 	var adj = [ [0,-1], [0,1], [-1,0], [1,0]];//, [-1,-1], [-1,1], [1,-1], [1,1] ];
 	for (var i=0; i<this.width; i++) {

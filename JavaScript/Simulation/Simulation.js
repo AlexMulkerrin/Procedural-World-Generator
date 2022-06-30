@@ -53,19 +53,13 @@ Simulation.prototype.updateAgents = function() {
 				case stateID.hunting:
 					this.handleHuntingAgent(a);
 					break;
+				case stateID.capturing:
+					this.handleCapturingAgent(a);
+					break;
 				case stateID.alert:
 					this.findTarget(i,a);
 					break;
 			}
-			/*
-			if (a.state == stateID.idle) {
-				this.findTarget(i,a);
-
-				//this.handleIdleAgent(a);
-			} else {
-				this.handleMovingAgent(a);
-			}
-			*/
 
 			if (a.cooldown == 0) {
 				this.handleWeaponFiring(i,a);
@@ -92,7 +86,12 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			a.x = a.targX;
 			a.y = a.targY;
 		}
+
+		if (a.state == stateID.capturing) {
+			this.handleCapture(a);
+		}
 		a.state = stateID.alert;
+
 	} else {
 		var nx = a.x + a.vx;
 		var ny = a.y + a.vy;
@@ -123,6 +122,26 @@ Simulation.prototype.handleHuntingAgent = function(a) {
 		a.state = stateID.alert;
 	}
 }
+Simulation.prototype.handleCapturingAgent = function(a) {
+	var p = this.planet;
+	var targ = p.structure[a.targAgentID];
+	if (targ.isAlive == true) {
+		this.handleMovingAgent(a);
+	} else {
+		a.state = stateID.alert;
+	}
+}
+
+Simulation.prototype.handleCapture = function(a) {
+	var p = this.planet;
+	var targ = p.structure[a.targAgentID];
+
+	p.terrain.wipeFactionInfluence(targ.factionID, targ.tileX, targ.tileY);
+	p.terrain.setFactionInfluence(a.factionID, targ.tileX, targ.tileY);
+	targ.factionID = a.factionID;
+	console.log("City "+a.targAgentID+" has been captured!");
+}
+
 Simulation.prototype.handleWeaponFiring = function(i,a) {
 	var hasFired = false;
 	for (var j=0; j<this.planet.agent.length && hasFired == false; j++) {
@@ -140,7 +159,7 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 
 					var dam = agentTypes[a.type].damage
 					ta.health -= dam;
-					console.log("Agent "+i+" has shot agent "+j+" for "+dam+" damage!");
+					//console.log("Agent "+i+" has shot agent "+j+" for "+dam+" damage!");
 					a.cooldown = agentTypes[a.type].cooldown;
 					hasFired = true;
 					if (ta.health <= 0) {
@@ -168,6 +187,7 @@ Simulation.prototype.findTarget = function(i,a) {
 	var closestID = NONE;
 	var dx, dy = 0;
 	var tx, ty = 0;
+
 	for (var j=0; j<this.planet.agent.length; j++) {
 		if (j != i) {
 			var ta = this.planet.agent[j];
@@ -193,13 +213,47 @@ Simulation.prototype.findTarget = function(i,a) {
 			}
 		}
 	}
+
+
+	var isTargettingStructure = false;
+	for (var j=0; j<this.planet.structure.length; j++) {
+		var sa = this.planet.structure[j];
+		if (sa.factionID != a.factionID && sa.isAlive == true
+		) { //&& this.planet.checkSameIsland(a,sa.x,sa.y)) {
+			if (closestID == NONE) {
+				dx = a.x - sa.x;
+				dy = a.y - sa.y;
+				isTargettingStructure = true;
+				closestDist = dx*dx + dy*dy;
+				closestID = j;
+				tx = sa.x;
+				ty = sa.y;
+			} else {
+				dx = a.x - sa.x;
+				dy = a.y - sa.y;
+				if ((dx*dx+dy*dy)<closestDist) {
+					isTargettingStructure = true;
+					closestDist = dx*dx + dy*dy;
+					closestID = j;
+					tx = sa.x;
+					ty = sa.y;
+				}
+			}
+		}
+	}
+
 	if (closestID == NONE) {
 		a.state = stateID.idle;
 		this.handleIdleAgent(a);
 	} else {
 		this.setCourse(a, tx, ty);
-		a.state = stateID.hunting;
 		a.targAgentID = closestID;
+
+		if (isTargettingStructure == true) {
+			a.state = stateID.capturing;
+		} else {
+			a.state = stateID.hunting;
+		}
 	}
 }
 Simulation.prototype.setCourse = function(a,targX,targY) {
@@ -223,15 +277,24 @@ Simulation.prototype.setCourse = function(a,targX,targY) {
 
 Simulation.prototype.updateStructures = function() {
 	var p = this.planet;
+	var ancientCombatLandUnits = [agentTypeID.warrior, agentTypeID.spearman, agentTypeID.archer, agentTypeID.swordsman, agentTypeID.horseman, agentTypeID.chariot, agentTypeID.catapult];
+
 	for (var i=0; i<p.structure.length; i++) {
 		var s = p.structure[i];
 
 		if (s.currentConstruction == NONE) {
 			if (s.isHarbour == true) {
-				s.currentConstruction = 10;
+				if (randomInteger(2) == 0) {
+					s.currentConstruction = agentTypeID.galley;
+				} else {
+					s.currentConstruction = randomChoice(ancientCombatLandUnits);
+				}
+
 			} else {
-				s.currentConstruction = randomInteger(10);
+				s.currentConstruction = randomChoice(ancientCombatLandUnits);
 			}
+
+
 			s.constructionTarget = agentTypes[s.currentConstruction].cost*300;
 		} else {
 			s.constructionProgress += s.population;

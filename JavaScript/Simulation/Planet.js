@@ -98,7 +98,7 @@ Planet.prototype.generateCity = function(tileX, tileY, value) {
 
 		this.faction.push(new Faction(currentFactionID));
 	}
-	this.structure.push(new Structure(id, x, y, pop, currentFactionID, isHarbour));
+	this.structure.push(new Structure(id, x, y, tileX, tileY, pop, currentFactionID, isHarbour));
 	this.terrain.setCityTerritory(id, tileX, tileY);
 	this.terrain.setFactionInfluence(currentFactionID, tileX, tileY);
 	this.totalPop += pop;
@@ -130,9 +130,11 @@ Planet.prototype.generateAgents = function(num) {
 	// make city defenders
 	for (var i=0; i<this.structure.length; i++) {
 		var s = this.structure[i];
+
 		if (s.isHarbour == true) {
 			this.agent.push(new Agent(s.x, s.y, agentTypeID.galley, s.factionID));
-		}
+		} 
+		this.agent.push(new Agent(s.x, s.y, agentTypeID.warrior, s.factionID));
 	}
 
 

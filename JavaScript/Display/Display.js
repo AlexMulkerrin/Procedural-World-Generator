@@ -2,7 +2,7 @@ const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", textRed:"#ff0000",
  point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
-agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9", attackOrder:"#ffff00",
+agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9", attackOrder:"#ffff00", captureOrder:"#ff0000",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 minimap:"#ffffff", tabBackground:"#ffffff",
 /* Terrain tile colours */
@@ -300,7 +300,13 @@ Display.prototype.drawAgents = function() {
 			var tx = Math.floor((a.targX - control.cameraX) * incX);
 			var ty = Math.floor((a.targY - control.cameraY) * incY);
 			this.drawLine(x,y,tx,ty,1);
+		} else if (a.state == stateID.capturing) {
+			this.ctx.strokeStyle = colour.captureOrder;
+			var tx = Math.floor((a.targX - control.cameraX) * incX);
+			var ty = Math.floor((a.targY - control.cameraY) * incY);
+			this.drawLine(x,y,tx,ty,1);
 		}
+
 
 		if (a.isAlive == true) {
 			this.ctx.fillStyle = planet.faction[a.factionID].colour;
