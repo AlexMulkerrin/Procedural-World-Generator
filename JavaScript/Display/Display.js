@@ -24,6 +24,8 @@ function Display(inSimulation) {
 	this.textCursorY = 0;
 	this.textHeight = 20;
 
+	this.spriteSheet = new SpriteSheet(this.targetSimulation.planet.faction);
+
 }
 
 Display.prototype.update = function() {
@@ -313,7 +315,13 @@ Display.prototype.drawAgents = function() {
 		} else {
 			this.ctx.fillStyle = colour.agentWreck;
 		}
+
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
+
+		// draw agent icon
+		var sx = a.factionID*15;
+		this.ctx.drawImage(this.spriteSheet.output, sx,0,15,15, x-8, y-8, 15, 15);
+
 
 		for (var j=0; j<control.selectedAgentList.length; j++) {
 			if ( i == control.selectedAgentList[j]) {

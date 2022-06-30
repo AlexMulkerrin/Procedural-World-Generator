@@ -34,6 +34,9 @@ function randomColour() {
 	}
 	return colourstring;
 }
+function getColourValue(colour) {
+	// todo
+}
 
 function create2DArray(width, height, initialValue) {
 	result = [];
