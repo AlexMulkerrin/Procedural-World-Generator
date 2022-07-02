@@ -153,7 +153,7 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 				var dx = ta.x - a.x;
 				var dy = ta.y - a.y;
 				var dist = dx*dx + dy*dy;
-				var range = agentTypes[a.type].range;
+				var range = agentTypes[a.type].range + agentTypes[a.type].size;
 				if (dist < (range*range)) {
 					// cancel orders for both agents
 					a.state = stateID.alert;

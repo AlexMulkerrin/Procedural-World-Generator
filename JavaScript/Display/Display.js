@@ -24,13 +24,23 @@ function Display(inSimulation) {
 	this.textCursorY = 0;
 	this.textHeight = 20;
 
-	this.spriteSheet = new SpriteSheet(this.targetSimulation.planet.faction);
+	this.spriteSheet = {};
+	this.generateSpriteSheet(); 
 
+}
+Display.prototype.generateSpriteSheet = function() {
+	this.spriteSheet = new SpriteSheet(this.targetSimulation.planet.faction);
 }
 
 Display.prototype.update = function() {
+	var ctrl = this.targetControl
+	if (ctrl.needNewSpritesheet == true) {
+		this.generateSpriteSheet();
+		ctrl.needNewSpritesheet = false;
+	}
 	this.clearCanvas();
 	this.refresh();
+	//this.ctx.drawImage(this.spriteSheet.output, 200, 0);
 }
 Display.prototype.clearCanvas = function() {
 	this.ctx.fillStyle = colour.background;
@@ -185,7 +195,7 @@ Display.prototype.drawCities = function() {
 
 		// draw city icon
 		var sx = factionID*15;
-		var sy = 30;
+		var sy = (iconShape.length-1)*(iconSymbol.length+1)*15;
 		this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
 
 		this.ctx.fillStyle = colour.textBlack;
@@ -322,14 +332,32 @@ Display.prototype.drawAgents = function() {
 			var sx = a.factionID*15;
 			var sy = 0;
 			switch (agentTypes[a.type].locomotion) {
+				case locomotionID.walker:
+					sy = (shapeID.walker)*(iconSymbol.length+1)*15;
+					break;
+				case locomotionID.mounted:
+					sy = (shapeID.mounted)*(iconSymbol.length+1)*15;
+					break;
+				case locomotionID.wheeled:
+					sy = (shapeID.wheeled)*(iconSymbol.length+1)*15;
+					break;
 				case locomotionID.boat:
 				case locomotionID.ship:
-					sy = 0;
+					sy = (shapeID.ship)*(iconSymbol.length+1)*15;
 					break;
 				default:
-					sy = 15;
+					sy = 0;
 					break;
 			}
+			if (agentTypes[a.type].capacity > 0) {
+				sy += 75;
+			} else if (agentTypes[a.type].isIndirect == true) {
+				sy += 30;
+			} else if (agentTypes[a.type].range > 0) {
+				sy += 15;
+			}
+
+
 			this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
 		} else {
 			this.ctx.fillStyle = colour.agentWreck;

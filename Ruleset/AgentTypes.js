@@ -1,5 +1,5 @@
 // {"name":"Battleship", "attack":18, "defence":12, "move":4, "cost":160, "locomotion":"sea", "special":"none", "vision":2, "required advance":"steel"},
-const locomotionID = {static:0, walker:1, wheeled:2, tracked:3, boat:4, ship:5, submersible:6, copter:7, plane:8, rocket:9, hover:10, amphibious:11, climber:12, railed:13 };
+const locomotionID = {static:0, walker:1, wheeled:2, tracked:3, boat:4, ship:5, submersible:6, copter:7, plane:8, rocket:9, hover:10, amphibious:11, climber:12, railed:13, mounted:14 };
 
 const agentTypeID = {
 	// ancient
@@ -19,14 +19,14 @@ const agentTypes = [
 	{name:"settler", locomotion:locomotionID.walker, maxHealth:10, size:10, speed:20000, cost:30},
 	{name:"worker", locomotion:locomotionID.walker, maxHealth:10, size:10, speed:20000, cost:10},
 	{name:"scout", locomotion:locomotionID.walker,  maxHealth:10, size:10, speed:40000, cost:10},
-	{name:"warrior", locomotion:locomotionID.walker, maxHealth:100, size:10, speed:20000, cost:10, damage:10, range:100, cooldown:5},
-	{name:"spearman", locomotion:locomotionID.walker, maxHealth:200, size:10, speed:20000, cost:20, damage:10, range:100, cooldown:5},
+	{name:"warrior", locomotion:locomotionID.walker, maxHealth:100, size:10, speed:20000, cost:10, damage:10, range:0, cooldown:5},
+	{name:"spearman", locomotion:locomotionID.walker, maxHealth:200, size:10, speed:20000, cost:20, damage:10, range:0, cooldown:5},
 	{name:"archer", locomotion:locomotionID.walker, maxHealth:100, size:10, speed:20000, cost:20, damage:20, range:200, cooldown:5},
-	{name:"swordsman", locomotion:locomotionID.walker, maxHealth:200, size:10, speed:20000, cost:30, damage:30, range:100, cooldown:5},
-	{name:"horseman", locomotion:locomotionID.walker, maxHealth:100, size:10, speed:40000, cost:30, damage:20, range:100, cooldown:5},
-	{name:"chariot", locomotion:locomotionID.wheeled, maxHealth:100, size:10, speed:40000, cost:20, damage:10, range:100, cooldown:5},
-	{name:"catapult", locomotion:locomotionID.wheeled, maxHealth:10, size:10, speed:10000, cost:20, damage:40, range:300, cooldown:20},
-	{name:"galley", locomotion:locomotionID.boat, maxHealth:100, size:10, speed:60000, cost:30, damage:10, range:200, cooldown:5},
+	{name:"swordsman", locomotion:locomotionID.walker, maxHealth:200, size:10, speed:20000, cost:30, damage:30, range:0, cooldown:5},
+	{name:"horseman", locomotion:locomotionID.mounted, maxHealth:100, size:10, speed:40000, cost:30, damage:20, range:0, cooldown:5},
+	{name:"chariot", locomotion:locomotionID.wheeled, maxHealth:100, size:10, speed:40000, cost:20, damage:10, range:0, cooldown:5},
+	{name:"catapult", locomotion:locomotionID.wheeled, maxHealth:10, size:10, speed:10000, cost:20, damage:40, range:300, cooldown:20, isIndirect:true},
+	{name:"galley", locomotion:locomotionID.boat, maxHealth:100, size:10, speed:60000, cost:30, damage:10, range:200, cooldown:5, capacity:2},
 
 	{name:"battleship", locomotion:locomotionID.ship, maxHealth:100, size:100, speed:20000, damage:30, range:40000, cooldown:10, radar:100000}
 ];

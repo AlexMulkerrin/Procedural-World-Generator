@@ -9,6 +9,8 @@ function Control(inSimulation) {
 	this.c = document.getElementById("canvas");
 	this.targetSimulation = inSimulation;
 
+	this.needNewSpritesheet = false;
+
 	var planet = this.targetSimulation.planet;
 	this.zoomLevel = zoomScales.length-1;
 	this.cameraX = -1*Math.floor((zoomScales[this.zoomLevel]-planet.circumference)/2);
@@ -213,7 +215,7 @@ Control.prototype.updateMouse = function() {
 	}
 
 	m.isOverMap = true;
-	if (m.mapX<0 || m.mapX>p.circumference || m.mapY>p.poleSpan || m.mapY<0) {
+	if (m.mapX<0 || m.mapX>p.gridCircumference || m.mapY>p.gridPoleSpan || m.mapY<0) {
 		m.isOverMap = false;
 	}
 
@@ -422,7 +424,7 @@ Control.prototype.cycleDetailsTab = function() {
 Control.prototype.generateWorld = function() {
 	var sim = this.targetSimulation;
 	sim.generateNewPlanet();
-
+	this.needNewSpritesheet = true;
 	this.selectedAgentList = [];
 }
 Control.prototype.openMenu = function() {

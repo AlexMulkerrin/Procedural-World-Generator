@@ -11,6 +11,7 @@ function Planet(inRadius, inRadiusVariation) {
 	var height = Math.floor(this.poleSpan/this.gridSize);
 	this.terrain = new Terrain(width,height);
 	this.gridCircumference = width*this.gridSize;
+	this.gridPoleSpan = height*this.gridSize;
 
 	this.structure = [];
 	this.faction = [];
