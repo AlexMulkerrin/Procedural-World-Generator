@@ -1,6 +1,8 @@
 const gameStateID = {start:0, menu:1, ingame:2};
 
 function Simulation() {
+	this.targetSoundSystem = {};
+
 	this.timer = 0;
 	this.year = 0;
 	this.month = 0;
@@ -163,13 +165,23 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 					a.cooldown = agentTypes[a.type].cooldown;
 					hasFired = true;
 					if (ta.health <= 0) {
-						ta.isAlive = false;
-						ta.state = stateID.dead;
-						console.log("Agent "+j+" has been destroyed!");
+						this.destroyAgent(ta);
+						if (a.factionID == 0) {
+							this.targetSoundSystem.createTone(noteNameID.F4,0);
+						}
 					}
 				}
 			}
 		}
+	}
+}
+Simulation.prototype.destroyAgent = function(a) {
+	var f = this.planet.faction[a.factionID];
+	a.isAlive = false;
+	a.state = stateID.dead;
+	console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
+	if (a.factionID == 0) {
+		this.targetSoundSystem.createTone(noteNameID.C4,0);
 	}
 }
 Simulation.prototype.giveRandomCourse = function(a) {
@@ -235,7 +247,7 @@ Simulation.prototype.findTarget = function(i,a) {
 					break;
 			}
 		}
-		
+
 		if (isValidTarget == true) {
 			if (closestID == NONE) {
 				dx = a.x - sa.x;
