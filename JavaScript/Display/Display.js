@@ -183,6 +183,11 @@ Display.prototype.drawCities = function() {
 		this.ctx.fillStyle = planet.faction[factionID].colour;
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);
 
+		// draw city icon
+		var sx = factionID*15;
+		var sy = 30;
+		this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
+
 		this.ctx.fillStyle = colour.textBlack;
 		var text1 = c.name+" "+c.population;
 		var text2 = "none";
@@ -190,11 +195,11 @@ Display.prototype.drawCities = function() {
 			text2 = agentTypes[c.currentConstruction].name+" "+Math.floor(c.constructionProgress*100/c.constructionTarget)+"%";
 		}
 
-		this.ctx.fillText(text1,x+1,y+2);
-		this.ctx.fillText(text2,x+1,y+14);
+		this.ctx.fillText(text1,x-30,y+22);
+		this.ctx.fillText(text2,x-30,y+34);
 		this.ctx.fillStyle = colour.textCyan;
-		this.ctx.fillText(text1,x,y);
-		this.ctx.fillText(text2,x,y+12);
+		this.ctx.fillText(text1,x-30,y+20);
+		this.ctx.fillText(text2,x-30,y+32);
 
 	}
 }
@@ -312,16 +317,24 @@ Display.prototype.drawAgents = function() {
 
 		if (a.isAlive == true) {
 			this.ctx.fillStyle = planet.faction[a.factionID].colour;
+			this.ctx.fillRect(x-r/2,y-r/2,r,r);
+			// draw agent icon
+			var sx = a.factionID*15;
+			var sy = 0;
+			switch (agentTypes[a.type].locomotion) {
+				case locomotionID.boat:
+				case locomotionID.ship:
+					sy = 0;
+					break;
+				default:
+					sy = 15;
+					break;
+			}
+			this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
 		} else {
 			this.ctx.fillStyle = colour.agentWreck;
+			this.ctx.fillRect(x-r/2,y-r/2,r,r);
 		}
-
-		this.ctx.fillRect(x-r/2,y-r/2,r,r);
-
-		// draw agent icon
-		var sx = a.factionID*15;
-		this.ctx.drawImage(this.spriteSheet.output, sx,0,15,15, x-8, y-8, 15, 15);
-
 
 		for (var j=0; j<control.selectedAgentList.length; j++) {
 			if ( i == control.selectedAgentList[j]) {
