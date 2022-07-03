@@ -1,5 +1,5 @@
 const stateID = { idle:0, moving:1, hunting:2, capturing:3, alert:4, dead:5 };
-
+const stanceID = { aggressive:0, defensive:1 };
 
 function Agent(inX, inY, inType, inFactionID) {
 	this.x = inX;
@@ -14,6 +14,7 @@ function Agent(inX, inY, inType, inFactionID) {
 	this.factionID = inFactionID;
 
 	this.state = stateID.alert;
+	this.stance = stanceID.aggressive;
 	this.isRoaming = true;
 	this.vx = 0;
 	this.vy = 0;

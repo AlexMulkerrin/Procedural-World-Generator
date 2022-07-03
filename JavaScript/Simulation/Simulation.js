@@ -138,10 +138,20 @@ Simulation.prototype.handleCapture = function(a) {
 	var p = this.planet;
 	var targ = p.structure[a.targAgentID];
 
-	p.terrain.wipeFactionInfluence(targ.factionID, targ.tileX, targ.tileY);
-	p.terrain.setFactionInfluence(a.factionID, targ.tileX, targ.tileY);
-	targ.factionID = a.factionID;
-	console.log("City "+a.targAgentID+" has been captured!");
+	if (targ.factionID != a.factionID) {
+		p.terrain.wipeFactionInfluence(targ.factionID, targ.tileX, targ.tileY);
+		p.terrain.setFactionInfluence(a.factionID, targ.tileX, targ.tileY);
+		if (targ.factionID == 0) {
+			console.log("City "+a.targAgentID+" has been lost...");
+			this.targetSoundSystem.createTone(noteNameID.B3,2);
+		}
+		if (a.factionID == 0) {
+			console.log("City "+a.targAgentID+" has been captured!");
+			this.targetSoundSystem.createTone(noteNameID.G4,2);
+		}
+		targ.factionID = a.factionID;
+		//console.log("City "+a.targAgentID+" has been captured!");
+	}
 }
 
 Simulation.prototype.handleWeaponFiring = function(i,a) {
@@ -167,6 +177,8 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 					if (ta.health <= 0) {
 						this.destroyAgent(ta);
 						if (a.factionID == 0) {
+							var f = this.planet.faction[ta.factionID];
+							console.log(f.name+" "+agentTypes[ta.type].name+" has been destroyed!");
 							this.targetSoundSystem.createTone(noteNameID.F4,0);
 						}
 					}
@@ -179,8 +191,9 @@ Simulation.prototype.destroyAgent = function(a) {
 	var f = this.planet.faction[a.factionID];
 	a.isAlive = false;
 	a.state = stateID.dead;
-	console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
+	//console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
 	if (a.factionID == 0) {
+		console.log("Our "+agentTypes[a.type].name+" has been defeated...");
 		this.targetSoundSystem.createTone(noteNameID.C4,0);
 	}
 }

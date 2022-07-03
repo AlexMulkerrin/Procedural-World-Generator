@@ -34,7 +34,7 @@ function randomColour() {
 	}
 	return colourstring;
 }
-function getColourValue(colour) {
+function adjustColourValue(colour, percent) {
 	// todo
 }
 

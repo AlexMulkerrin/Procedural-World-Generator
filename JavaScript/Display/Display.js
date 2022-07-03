@@ -25,7 +25,7 @@ function Display(inSimulation) {
 	this.textHeight = 20;
 
 	this.spriteSheet = {};
-	this.generateSpriteSheet(); 
+	this.generateSpriteSheet();
 
 }
 Display.prototype.generateSpriteSheet = function() {
@@ -580,14 +580,47 @@ Display.prototype.drawPlanetDetails = function() {
 	var p = this.targetSimulation.planet;
 
 	this.drawText("Planet: "+p.name);
-	this.drawText("Radius: "+printUnitsMeters(p.radius));
+	//this.drawText("Radius: "+printUnitsMeters(p.radius));
 
 	var landArea = p.terrain.totalLand*(p.gridSize/1000)*(p.gridSize/1000);
 	this.drawText("Land: "+Math.floor(landArea/1000000)+" Mkm^2");
-	this.drawText("Islands: "+p.terrain.numIslands);
 	this.drawText("Factions: "+p.faction.length);
 	this.drawText("Cities: "+p.structure.length);
 	this.drawText("Population: "+p.totalPop+" M");
+	this.drawText("---------");
+
+	this.drawText("Total islands: "+p.terrain.numIslands);
+	for (var i=0; i<p.summary.islandTotals.length && i<6; i++) {
+		var t = p.summary.islandTotals[i];
+		var r = p.terrain.regionDetails[t[0]];
+		switch (t[2]) {
+			case NONE:
+				this.drawText(r.nameShort+": "+r.size+" empty");
+				break;
+			case CONTESTED:
+				this.drawText(r.nameShort+": "+r.size);
+				break;
+			case 0:
+				this.drawText(r.nameShort+": "+r.size+" (you)");
+				break;
+			default:
+				var f = p.faction[t[2]];
+				this.drawText(r.nameShort+": "+r.size+" "+f.name);
+				break;
+		}
+
+
+	}
+	var other = 0;
+	var otherSize = 0;
+	for (var i=6; i<p.summary.islandTotals.length; i++) {
+		var t = p.summary.islandTotals[i];
+		other++;
+		otherSize += t[1];
+	}
+	if (other>0) {
+		this.drawText("other: ("+other+") "+otherSize);
+	}
 }
 Display.prototype.drawTerrainDetails = function() {
 	var p = this.targetSimulation.planet;
@@ -637,7 +670,7 @@ Display.prototype.drawCityDetails = function() {
 		var s = p.structure[t[0]];
 		if (t[1]>0) {
 			if (t[0] == selectedFaction) {
-				this.drawText(s.name+" (you): "+s.population+"M");
+				this.drawText(s.name+" (you) "+s.population+"M");
 			} else {
 				this.drawText(s.name+" "+s.population+"M");
 			}
@@ -664,9 +697,9 @@ Display.prototype.drawAgentDetails = function() {
 		var t = p.summary.agentTotals[i];
 		if (t[1]>0) {
 			if (t[0] == selectedFaction) {
-				this.drawText(p.faction[t[0]].name+" (you): "+t[1]);
+				this.drawText(p.faction[t[0]].name+" (you) "+t[1]);
 			} else {
-				this.drawText(p.faction[t[0]].name+" ("+t[0]+"): "+t[1]);
+				this.drawText(p.faction[t[0]].name+" "+t[1]);
 			}
 		}
 	}

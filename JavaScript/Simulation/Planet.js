@@ -1,4 +1,4 @@
-
+const CONTESTED = -2;
 
 function Planet(inRadius, inRadiusVariation) {
 	this.name = randomName();
@@ -150,6 +150,8 @@ function Summary() {
 
 	this.structureSum = 0;
 	this.structureTotals = [];
+
+	this.islandTotals = [];
 }
 
 Planet.prototype.generateSummary = function() {
@@ -186,6 +188,32 @@ Planet.prototype.generateSummary = function() {
 	}
 	this.summary.structureTotals.sort(function(a, b){return b[1] - a[1]});
 
+	this.summary.islandTotals = [];
+	for (var i=0; i<this.terrain.numIslands; i++) {
+		var r = this.terrain.regionDetails[i];
+		var owner = this.getIslandOwner(i);
+		this.summary.islandTotals.push([i,r.size,owner]);
+	}
+	this.summary.islandTotals.sort(function(a, b){return b[1] - a[1]});
+
+}
+Planet.prototype.getIslandOwner = function(targIslandID) {
+	var owner = NONE;
+	for (var i=0; i<this.terrain.width; i++) {
+		if (owner == CONTESTED) break;
+		for (var j=0; j<this.terrain.height; j++) {
+			var t = this.terrain.tile[i][j];
+			if (t.islandID == targIslandID && t.factionInfluence != NONE) {
+				if (owner == NONE) {
+					owner = t.factionInfluence;
+				} else if (t.factionInfluence != owner) {
+					owner = CONTESTED;
+					break;
+				}
+			}
+		}
+	}
+	return owner;
 }
 
 Planet.prototype.checkAgentMove = function(a,nx,ny) {

@@ -17,7 +17,8 @@ function RegionDetails(inType, inStats, inTileType) {
 			}
 			i++;
 		}
-		this.name = this.sizeClass+ " of "+randomName();
+		this.nameShort = randomName()
+		this.name = this.sizeClass+ " of "+ this.nameShort;
 
 	} else if (this.type == regionID.water) {
 		var i=0;

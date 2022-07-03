@@ -22,4 +22,5 @@ function Mouse() {
 
 	this.hoveredButton = NONE;
 	this.hoveredAgentList = [];
+	this.hoveredCity = NONE;
 }
