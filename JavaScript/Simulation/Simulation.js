@@ -68,6 +68,11 @@ Simulation.prototype.updateAgents = function() {
 			} else {
 				a.cooldown--;
 			}
+		} else {
+			a.decay--;
+			if (a.decay<1) {
+				a.isReplaceable = true;
+			}
 		}
 
 
@@ -91,8 +96,10 @@ Simulation.prototype.handleMovingAgent = function(a) {
 
 		if (a.state == stateID.capturing) {
 			this.handleCapture(a);
+		} else {
+			a.state = stateID.alert;
 		}
-		a.state = stateID.alert;
+
 
 	} else {
 		var nx = a.x + a.vx;
@@ -150,7 +157,10 @@ Simulation.prototype.handleCapture = function(a) {
 			this.targetSoundSystem.createTone(noteNameID.G4,2);
 		}
 		targ.factionID = a.factionID;
+		a.state = stateID.idle;
 		//console.log("City "+a.targAgentID+" has been captured!");
+	} else {
+		a.state = stateID.alert;
 	}
 }
 
@@ -190,6 +200,7 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 Simulation.prototype.destroyAgent = function(a) {
 	var f = this.planet.faction[a.factionID];
 	a.isAlive = false;
+	a.decay = 120;
 	a.state = stateID.dead;
 	//console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
 	if (a.factionID == 0) {
@@ -342,7 +353,7 @@ Simulation.prototype.updateStructures = function() {
 			s.constructionProgress += s.population;
 			if (s.constructionProgress >= s.constructionTarget) {
 				s.constructionProgress = 0;
-				p.agent.push(new Agent(s.x, s.y, s.currentConstruction, s.factionID));
+				p.createAgent(s.x, s.y, s.currentConstruction, s.factionID)
 				s.currentConstruction = NONE;
 			}
 		}

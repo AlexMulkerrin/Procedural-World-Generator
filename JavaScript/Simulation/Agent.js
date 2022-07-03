@@ -8,8 +8,12 @@ function Agent(inX, inY, inType, inFactionID) {
 	//this.locomotion = inLocomotion;
 	this.type = inType;
 	this.health = agentTypes[this.type].maxHealth;
-	this.isAlive = true;
 	this.cooldown = 0;
+
+	this.isAlive = true;
+	this.decay = 0;
+	this.isReplaceable = false;
+
 
 	this.factionID = inFactionID;
 

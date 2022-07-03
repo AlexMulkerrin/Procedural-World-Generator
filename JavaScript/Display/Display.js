@@ -327,7 +327,7 @@ Display.prototype.drawAgents = function() {
 
 		if (a.isAlive == true) {
 			this.ctx.fillStyle = planet.faction[a.factionID].colour;
-		} else {
+		} else if (a.decay>0) {
 			this.ctx.fillStyle = colour.agentWreck;
 		}
 		this.ctx.fillRect(x-r/2,y-r/2,r,r);

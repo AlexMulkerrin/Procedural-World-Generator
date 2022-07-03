@@ -19,7 +19,7 @@ function Planet(inRadius, inRadiusVariation) {
 	this.generateCities();
 
 	this.agent = [];
-	this.generateAgents(100);
+	//this.generateAgents(100);
 
 	this.summary = new Summary();
 	this.generateSummary();
@@ -137,9 +137,21 @@ Planet.prototype.generateAgents = function(num) {
 		}
 		this.agent.push(new Agent(s.x, s.y, agentTypeID.warrior, s.factionID));
 	}
-
-
 }
+Planet.prototype.createAgent = function(x,y,type,factionID) {
+	var index = NONE;
+	for (var i=0; i<this.agent.length; i++) {
+		if (this.agent[i].isReplaceable == true) {
+			index = i;
+		}
+	}
+	if (index == NONE) {
+		this.agent.push(new Agent(x, y, type, factionID));
+	} else {
+		this.agent[index] = new Agent(x, y, type, factionID);
+	}
+}
+
 
 function Summary() {
 	this.agentSum = 0;
