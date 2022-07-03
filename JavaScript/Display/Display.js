@@ -327,53 +327,60 @@ Display.prototype.drawAgents = function() {
 
 		if (a.isAlive == true) {
 			this.ctx.fillStyle = planet.faction[a.factionID].colour;
-			this.ctx.fillRect(x-r/2,y-r/2,r,r);
-			// draw agent icon
-			var sx = a.factionID*15;
-			var sy = 0;
-			switch (agentTypes[a.type].locomotion) {
-				case locomotionID.walker:
-					sy = (shapeID.walker)*(iconSymbol.length+1)*15;
-					break;
-				case locomotionID.mounted:
-					sy = (shapeID.mounted)*(iconSymbol.length+1)*15;
-					break;
-				case locomotionID.wheeled:
-					sy = (shapeID.wheeled)*(iconSymbol.length+1)*15;
-					break;
-				case locomotionID.boat:
-				case locomotionID.ship:
-					sy = (shapeID.ship)*(iconSymbol.length+1)*15;
-					break;
-				default:
-					sy = 0;
-					break;
-			}
-			if (agentTypes[a.type].capacity > 0) {
-				sy += 75;
-			} else if (agentTypes[a.type].isIndirect == true) {
-				sy += 30;
-			} else if (agentTypes[a.type].range > 0) {
-				sy += 15;
-			}
-
-
-			this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
 		} else {
 			this.ctx.fillStyle = colour.agentWreck;
-			this.ctx.fillRect(x-r/2,y-r/2,r,r);
 		}
+		this.ctx.fillRect(x-r/2,y-r/2,r,r);
+
+		// draw agent icon
+		var sx = a.factionID*15;
+		if (a.isAlive == false) {
+			sx = planet.faction.length*15;
+		}
+		var sy = 0;
+		switch (agentTypes[a.type].locomotion) {
+			case locomotionID.walker:
+				sy = (shapeID.walker)*(iconSymbol.length+1)*15;
+				break;
+			case locomotionID.mounted:
+				sy = (shapeID.mounted)*(iconSymbol.length+1)*15;
+				break;
+			case locomotionID.wheeled:
+				sy = (shapeID.wheeled)*(iconSymbol.length+1)*15;
+				break;
+			case locomotionID.boat:
+			case locomotionID.ship:
+				sy = (shapeID.ship)*(iconSymbol.length+1)*15;
+				break;
+			default:
+				sy = 0;
+				break;
+		}
+		if (agentTypes[a.type].capacity > 0) {
+			sy += 75;
+		} else if (agentTypes[a.type].isIndirect == true) {
+			sy += 30;
+		} else if (agentTypes[a.type].range > 0) {
+			sy += 15;
+		}
+
+		this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
+
 
 		for (var j=0; j<control.selectedAgentList.length; j++) {
 			if ( i == control.selectedAgentList[j]) {
-				this.ctx.fillStyle = colour.agentSelect;
-				this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
+				sx = (planet.faction.length+1)*15;
+				this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
+				//this.ctx.fillStyle = colour.agentSelect;
+				//this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
 			}
 		}
 		for (var j=0; j<control.mouse.hoveredAgentList.length; j++) {
 			if ( i == control.mouse.hoveredAgentList[j]) {
-				this.ctx.fillStyle = colour.agentHover;
-				this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
+				sx = (planet.faction.length+1)*15;
+				this.ctx.drawImage(this.spriteSheet.output, sx,sy,15,15, x-8, y-8, 15, 15);
+				//this.ctx.fillStyle = colour.agentHover;
+				//this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
 			}
 		}
 
