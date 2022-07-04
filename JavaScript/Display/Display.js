@@ -55,15 +55,18 @@ Display.prototype.refresh = function() {
 	if (ctrl.visibilityFlags[visibilityID.improvements] == true) {
 		this.drawRoads();
 	}
+
+	if (ctrl.visibilityFlags[visibilityID.labels] == true) {
+		this.drawLabels();
+	}
+
 	if (ctrl.visibilityFlags[visibilityID.cities] == true) {
 		this.drawCities();
 	}
 	if (ctrl.visibilityFlags[visibilityID.agents] == true) {
 		this.drawAgents();
 	}
-	if (ctrl.visibilityFlags[visibilityID.labels] == true) {
-		this.drawLabels();
-	}
+
 	if (ctrl.visibilityFlags[visibilityID.interface] == true) {
 		this.drawMinimap();
 
@@ -88,7 +91,8 @@ Display.prototype.drawTerrain = function() {
 
 	for (var i=0; i<terrain.width; i++) {
 		for (var j=0; j<terrain.height; j++) {
-			this.ctx.fillStyle = this.selectTileColour(terrain.tile[i][j]);
+			var t = terrain.tile[i][j];
+			this.ctx.fillStyle = this.selectTileColour(t.type, t.elevation);
 
 			var x = (i*size) - cx;
 			var y = (j*size) - cy;
@@ -200,14 +204,14 @@ Display.prototype.drawCities = function() {
 
 		this.ctx.fillStyle = colour.textBlack;
 		var text1 = c.name+" "+c.population;
-		var text2 = "none";
-		if (c.currentConstruction != NONE) {
+		var text2 = "";
+		if (c.factionID == 0 && c.currentConstruction != NONE) {
 			text2 = agentTypes[c.currentConstruction].name+" "+Math.floor(c.constructionProgress*100/c.constructionTarget)+"%";
 		}
 
 		this.ctx.fillText(text1,x-30,y+22);
 		this.ctx.fillText(text2,x-30,y+34);
-		this.ctx.fillStyle = colour.textCyan;
+		this.ctx.fillStyle = planet.faction[factionID].colour; //colour.textCyan;
 		this.ctx.fillText(text1,x-30,y+20);
 		this.ctx.fillText(text2,x-30,y+32);
 
@@ -304,24 +308,25 @@ Display.prototype.drawAgents = function() {
 		}
 		*/
 
-
-		if (a.state == stateID.moving) {
-			this.ctx.fillStyle = colour.moveOrder;
-			this.ctx.strokeStyle = colour.moveOrder;
-			var tx = Math.floor((a.targX - control.cameraX) * incX);
-			var ty = Math.floor((a.targY - control.cameraY) * incY);
-			this.ctx.fillRect(tx-r/2,ty-r/2,r,r);
-			this.drawLine(x,y,tx,ty,1);
-		} else if (a.state == stateID.hunting) {
-			this.ctx.strokeStyle = colour.attackOrder;
-			var tx = Math.floor((a.targX - control.cameraX) * incX);
-			var ty = Math.floor((a.targY - control.cameraY) * incY);
-			this.drawLine(x,y,tx,ty,1);
-		} else if (a.state == stateID.capturing) {
-			this.ctx.strokeStyle = colour.captureOrder;
-			var tx = Math.floor((a.targX - control.cameraX) * incX);
-			var ty = Math.floor((a.targY - control.cameraY) * incY);
-			this.drawLine(x,y,tx,ty,1);
+		if (a.factionID == 0) {
+			if (a.state == stateID.moving) {
+				this.ctx.fillStyle = colour.moveOrder;
+				this.ctx.strokeStyle = colour.moveOrder;
+				var tx = Math.floor((a.targX - control.cameraX) * incX);
+				var ty = Math.floor((a.targY - control.cameraY) * incY);
+				this.ctx.fillRect(tx-r/2,ty-r/2,r,r);
+				this.drawLine(x,y,tx,ty,1);
+			} else if (a.state == stateID.hunting) {
+				this.ctx.strokeStyle = colour.attackOrder;
+				var tx = Math.floor((a.targX - control.cameraX) * incX);
+				var ty = Math.floor((a.targY - control.cameraY) * incY);
+				this.drawLine(x,y,tx,ty,1);
+			} else if (a.state == stateID.capturing) {
+				this.ctx.strokeStyle = colour.captureOrder;
+				var tx = Math.floor((a.targX - control.cameraX) * incX);
+				var ty = Math.floor((a.targY - control.cameraY) * incY);
+				this.drawLine(x,y,tx,ty,1);
+			}
 		}
 
 
@@ -445,7 +450,8 @@ Display.prototype.drawMinimap = function() {
 
 	for (var i=0; i<terrain.width; i++) {
 		for (var j=0; j<terrain.height; j++) {
-			this.ctx.fillStyle = this.selectTileColour(terrain.tile[i][j]);
+			var t = terrain.tile[i][j];
+			this.ctx.fillStyle = this.selectTileColour(t.type, t.elevation);
 			var x = i*sqSize + offsetX;
 			var y = j*sqSize + offsetY;
 			this.ctx.fillRect(x,y,sqSize,sqSize);
@@ -591,7 +597,7 @@ Display.prototype.drawPlanetDetails = function() {
 
 	var landArea = p.terrain.totalLand*(p.gridSize/1000)*(p.gridSize/1000);
 	this.drawText("Land: "+Math.floor(landArea/1000000)+" Mkm^2");
-	this.drawText("Factions: "+p.faction.length);
+	this.drawText("Factions: "+p.summary.factionTotals.length);
 	this.drawText("Cities: "+p.structure.length);
 	this.drawText("Population: "+p.totalPop+" M");
 	this.drawText("---------");
@@ -608,10 +614,16 @@ Display.prototype.drawPlanetDetails = function() {
 				this.drawText(r.nameShort+": "+r.size);
 				break;
 			case 0:
+				this.ctx.fillStyle = p.faction[t[2]].colour;
+				this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+				this.ctx.fillStyle = colour.textBlack;
 				this.drawText(r.nameShort+": "+r.size+" (you)");
 				break;
 			default:
 				var f = p.faction[t[2]];
+				this.ctx.fillStyle = f.colour;
+				this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+				this.ctx.fillStyle = colour.textBlack;
 				this.drawText(r.nameShort+": "+r.size+" "+f.name);
 				break;
 		}
@@ -639,6 +651,9 @@ Display.prototype.drawTerrainDetails = function() {
 
 	var tileNames = Object.keys(tileID);
 	for (var i=0; i<t.count.length; i++) {
+		this.ctx.fillStyle = this.selectTileColour(i, 0);
+		this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+		this.ctx.fillStyle = colour.textBlack;
 		this.drawText(tileNames[i]+": "+t.count[i]);
 	}
 }
@@ -650,6 +665,9 @@ Display.prototype.drawFactionDetails = function() {
 	for (var i=0; i<p.summary.factionTotals.length && i<11; i++) {
 		var t = p.summary.factionTotals[i];
 		var f = p.faction[t[0]];
+		this.ctx.fillStyle = f.colour;
+		this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+		this.ctx.fillStyle = colour.textBlack;
 		if (t[0] == selectedFaction) {
 			this.drawText(f.name+" (you): C:"+f.totalStructures+" A:"+f.totalAgents);
 		} else {
@@ -675,8 +693,12 @@ Display.prototype.drawCityDetails = function() {
 	for (var i=0; i<p.summary.structureTotals.length && i<12; i++) {
 		var t = p.summary.structureTotals[i];
 		var s = p.structure[t[0]];
+		this.ctx.fillStyle = p.faction[s.factionID].colour;
+		this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+		this.ctx.fillStyle = colour.textBlack;
+
 		if (t[1]>0) {
-			if (t[0] == selectedFaction) {
+			if (s.factionID == selectedFaction) {
 				this.drawText(s.name+" (you) "+s.population+"M");
 			} else {
 				this.drawText(s.name+" "+s.population+"M");
@@ -703,6 +725,9 @@ Display.prototype.drawAgentDetails = function() {
 	for (var i=0; i<p.summary.agentTotals.length && i<12; i++) {
 		var t = p.summary.agentTotals[i];
 		if (t[1]>0) {
+			this.ctx.fillStyle = p.faction[t[0]].colour;
+			this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+			this.ctx.fillStyle = colour.textBlack;
 			if (t[0] == selectedFaction) {
 				this.drawText(p.faction[t[0]].name+" (you) "+t[1]);
 			} else {
@@ -811,7 +836,7 @@ Display.prototype.drawTooltip = function() {
 	var ctrl = this.targetControl;
 	if (ctrl.mouse.hoveredButton>=0) {
 		var b = ctrl.button[ctrl.mouse.hoveredButton];
-		var text = b.tooltip+" ("+b.hotkey+")";
+		var text = b.tooltip+" ("+b.hotkey.toUpperCase()+")";
 
 		var textLength = this.ctx.measureText(text).width;
 		var x = ctrl.mouse.x;
@@ -852,11 +877,11 @@ Display.prototype.drawText = function(text) {
 	this.textCursorY += this.textHeight;
 }
 
-Display.prototype.selectTileColour = function(tile) {
+Display.prototype.selectTileColour = function(type, elevation) {
 	var result = colour.error;
-	switch (tile.type) {
+	switch (type) {
 		case tileID.water:
-			if (tile.elevation < 0) {
+			if (elevation < 0) {
 				result = colour.deepWater;
 			} else {
 				result = colour.water;

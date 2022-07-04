@@ -159,11 +159,11 @@ Control.prototype.makeInterface = function() {
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟦", "toggleFullscreen",'f',"toggleFullscreen"));
 	g.shift(0,-1);
 	if (this.zoomLevel < (zoomScales.length - 1) ) {
-		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out",173,"zoomOut",false));
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬇️", "zoom out","-","zoomOut",false));
 	}
 	g.shift(0,-1);
 	if (this.zoomLevel > 0 ) {
-		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬆️", "zoom in",61,"zoomIn",false));
+		this.button.push(new Button(g.x,g.y,g.size,g.size,"⬆️", "zoom in","+","zoomIn",false));
 	}
 
 }
@@ -560,5 +560,14 @@ Control.prototype.handleHotkeys = function() {
 			}
 			this.keyCodes[b.hotkey] = false;
 		}
+	}
+	if (this.keyCodes[173] == true) {
+		// kludge for + in firefox
+	   this.zoomOut();
+	   this.keyCodes[173] = false;
+	} else if (this.keyCodes[61] == true) {
+	   // kludge for - in firefox
+	   this.zoomIn();
+	   this.keyCodes[61] = false;
 	}
 }
