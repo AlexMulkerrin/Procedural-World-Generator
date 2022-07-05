@@ -47,7 +47,7 @@ Simulation.prototype.updateAgents = function() {
 		if (a.isAlive == true) {
 			switch (a.state) {
 				case stateID.idle:
-					this.handleIdleAgent(a);
+					this.handleIdleAgent(i,a);
 					break;
 				case stateID.moving:
 					this.handleMovingAgent(a);
@@ -59,8 +59,23 @@ Simulation.prototype.updateAgents = function() {
 					this.handleCapturingAgent(a);
 					break;
 				case stateID.alert:
-					this.findTarget(i,a);
+					this.findTarget(i,a, false);
 					break;
+
+				// transport related states
+				case stateID.pickingUp:
+					this.handlePickingUpAgent(a);
+					break;
+				case stateID.transporting:
+					this.handleTransportingAgent(a);
+					break;
+				case stateID.boarding:
+					this.handleBoardingAgent(i,a);
+					break;
+				case stateID.inTransit:
+					this.handleInTransitAgent(a);
+					break;
+
 			}
 
 			if (a.cooldown == 0) {
@@ -78,7 +93,15 @@ Simulation.prototype.updateAgents = function() {
 
 	}
 }
-Simulation.prototype.handleIdleAgent = function(a) {
+Simulation.prototype.handleIdleAgent = function(i,a) {
+
+	// look for transport
+	if (agentTypes[a.type].transportCapacity) {
+		// is transport itself so can't be transported...
+		// todo maybe look for passengers?
+	} else {
+		this.findTransport(i,a);
+	}
 
 	if (a.isRoaming == true && randomInteger(100) == 0) {
 		this.giveRandomCourse(a);
@@ -87,21 +110,41 @@ Simulation.prototype.handleIdleAgent = function(a) {
 Simulation.prototype.handleMovingAgent = function(a) {
 	var dx = Math.abs(a.targX - a.x);
 	var dy = Math.abs(a.targY - a.y);
-	if (dx<=Math.abs(a.vx) && dy<=Math.abs(a.vy)) {
-		// TODO find closest valid point along course
+	if (dx<=Math.abs(a.vx) && dy<=Math.abs(a.vy)) { // is close enough to reach
+
 		if (this.planet.checkAgentMove(a,a.targX,a.targY) == true) {
 			a.x = a.targX;
 			a.y = a.targY;
-		}
-
-		if (a.state == stateID.capturing) {
-			this.handleCapture(a);
 		} else {
-			a.state = stateID.alert;
+			// TODO find closest valid point along course
 		}
 
+		// next state depends on current state
+		switch (a.state) {
+			case stateID.capturing:
+			this.handleCapture(a);
+			break;
+			case stateID.idle:
+			case stateID.moving:
+			case stateID.hunting:
+				a.state = stateID.alert;
+				break;
+			case stateID.pickingUp:
+				// wait as reached rendezvous first
+				a.isWaiting = true;
+				break;
+			case stateID.transporting:
+				// todo handle dropoff
+				this.handleDropoff(a,a.x, a.y);
+				a.state = stateID.alert;
+				break;
+			case stateID.boarding:
+				// wait as reached rendezvous first
+				a.isWaiting = true;
+				break;
+		}
 
-	} else {
+	} else { // move towards target
 		var nx = a.x + a.vx;
 		var ny = a.y + a.vy;
 
@@ -115,8 +158,36 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			if (a.x<0) a.x += this.planet.gridCircumference;
 			if (a.x>=this.planet.gridCircumference) a.x -= this.planet.gridCircumference;
 
-		} else { // collides
-			this.giveRandomCourse(a);
+		} else { // collides with terrain
+
+			switch (a.state) {
+				case stateID.idle:
+				case stateID.moving:
+				case stateID.hunting:
+				case stateID.capturing:
+					// bumble around a bit to hopefully reposition
+					this.giveRandomCourse(a);
+					break;
+				case stateID.pickingUp:
+					// wait as reached rendezvous first
+					a.isWaiting = true;
+					break;
+				case stateID.transporting:
+					// hopefully hit landfall...
+					this.handleDropoff(a,nx,ny);
+					a.state = stateID.alert;
+
+					// bumble about but don't forget state!
+					//this.giveRandomCourse(a);
+					//a.state = stateID.transporting;
+					break;
+				case stateID.boarding:
+					// wait as reached rendezvous first
+					a.isWaiting = true;
+					break;
+			}
+
+
 			//a.state = stateID.idle;
 		}
 	}
@@ -139,6 +210,68 @@ Simulation.prototype.handleCapturingAgent = function(a) {
 	} else {
 		a.state = stateID.alert;
 	}
+}
+Simulation.prototype.handlePickingUpAgent = function(a) {
+	var p = this.planet;
+	var targ = p.agent[a.targAgentID];
+	if (targ.isAlive == true) {
+		this.handleMovingAgent(a);
+	} else {
+		a.state = stateID.idle;
+		a.isWaiting = false;
+	}
+}
+Simulation.prototype.handleTransportingAgent = function(a) {
+	this.handleMovingAgent(a);
+	if (a.state == stateID.transporting) { // keep cargo position updated
+		for (var i=0; i<a.cargo.length; i++) {
+			var ca = this.planet.agent[a.cargo[i]];
+			ca.x = a.x;
+			ca.y = a.y;
+		}
+	}
+}
+Simulation.prototype.handleBoardingAgent = function(i,a) {
+	var p = this.planet;
+	var ta = p.agent[a.targAgentID];
+	if (ta.isAlive == true) {
+
+		var dx = ta.x - a.x;
+		var dy = ta.y - a.y;
+		var dist = dx*dx + dy*dy;
+		// kludge just add both agents speeds together for range
+		var range = agentTypes[a.type].speed + agentTypes[ta.type].speed;
+		if (dist < (range*range)) {
+			//is within movement range so get on
+			a.state = stateID.inTransit;
+			a.isWaiting = false;
+
+			this.findTarget(a.targAgentID, ta, true);
+			ta.state = stateID.transporting;
+			ta.isWaiting = false;
+			ta.cargo.push(i);
+
+		} else {
+			// still too far, check if both agents are waiting ie. stuck
+			if (a.isWaiting == true && ta.isWaiting == true) {
+				// if both stuck waiting cancel transport states and wander
+				this.giveRandomCourse(a);
+				a.state = stateID.moving;
+				a.isWaiting = false;
+
+				this.giveRandomCourse(ta);
+				ta.state = stateID.moving;
+				ta.isWaiting = false;
+			}
+			this.handleMovingAgent(a);
+		}
+	} else {
+		a.state = stateID.alert;
+		a.isWaiting = false;
+	}
+}
+Simulation.prototype.handleInTransitAgent = function(a) {
+	// just sits tight until transport reaches destination
 }
 
 Simulation.prototype.handleCapture = function(a) {
@@ -163,6 +296,15 @@ Simulation.prototype.handleCapture = function(a) {
 		a.state = stateID.alert;
 	}
 }
+Simulation.prototype.handleDropoff = function(a, x, y) {
+	for (var i=0; i<a.cargo.length; i++) {
+		var ca = this.planet.agent[a.cargo[i]];
+		ca.x = x;
+		ca.y = y;
+		ca.state = stateID.alert;
+	}
+	a.cargo = [];
+}
 
 Simulation.prototype.handleWeaponFiring = function(i,a) {
 	var hasFired = false;
@@ -175,9 +317,17 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 				var dist = dx*dx + dy*dy;
 				var range = agentTypes[a.type].range + agentTypes[a.type].size;
 				if (dist < (range*range)) {
-					// cancel orders for both agents
+					// cancel orders for attacker
 					a.state = stateID.alert;
-					ta.state = stateID.alert;
+					if (ta.state == stateID.pickingUp
+						|| ta.state == stateID.transporting
+						|| ta.state == stateID.boarding
+						|| ta.state == stateID.inTransit) {
+						// defender is busy ignore
+					} else {
+						ta.state = stateID.alert;
+					}
+
 
 					var dam = agentTypes[a.type].damage
 					ta.health -= dam;
@@ -218,36 +368,40 @@ Simulation.prototype.giveRandomCourse = function(a) {
 	if (a.targX<0) a.targX += this.planet.gridCircumference;
 	if (a.targX>=this.planet.gridCircumference) a.targX -= this.planet.gridCircumference;
 }
-Simulation.prototype.findTarget = function(i,a) {
+Simulation.prototype.findTarget = function(i,a, isTransporting) {
 	var closestDist = NONE;
 	var closestID = NONE;
 	var dx, dy = 0;
 	var tx, ty = 0;
 
-	for (var j=0; j<this.planet.agent.length; j++) {
-		if (j != i) {
-			var ta = this.planet.agent[j];
-			if (ta.factionID != a.factionID && ta.isAlive == true
-				&& this.planet.checkSameIsland(a,ta.x,ta.y)) {
-				if (closestID == NONE) {
-					dx = a.x - ta.x;
-					dy = a.y - ta.y;
-					closestDist = dx*dx + dy*dy;
-					closestID = j;
-					tx = ta.x;
-					ty = ta.y;
-				} else {
-					dx = a.x - ta.x;
-					dy = a.y - ta.y;
-					if ((dx*dx+dy*dy)<closestDist) {
+	if (isTransporting == false) {
+		for (var j=0; j<this.planet.agent.length; j++) {
+			if (j != i) {
+				var ta = this.planet.agent[j];
+				if (ta.factionID != a.factionID && ta.isAlive == true
+					&& this.planet.checkSameIsland(a,ta.x,ta.y)) {
+					if (closestID == NONE) {
+						dx = a.x - ta.x;
+						dy = a.y - ta.y;
 						closestDist = dx*dx + dy*dy;
 						closestID = j;
 						tx = ta.x;
 						ty = ta.y;
+					} else {
+						dx = a.x - ta.x;
+						dy = a.y - ta.y;
+						if ((dx*dx+dy*dy)<closestDist) {
+							closestDist = dx*dx + dy*dy;
+							closestID = j;
+							tx = ta.x;
+							ty = ta.y;
+						}
 					}
 				}
 			}
 		}
+	} else {
+		// is transporting units so is looking for an enemy city
 	}
 
 
@@ -297,7 +451,7 @@ Simulation.prototype.findTarget = function(i,a) {
 
 	if (closestID == NONE) {
 		a.state = stateID.idle;
-		this.handleIdleAgent(a);
+		//this.handleIdleAgent(a);
 	} else {
 		this.setCourse(a, tx, ty);
 		a.targAgentID = closestID;
@@ -307,6 +461,59 @@ Simulation.prototype.findTarget = function(i,a) {
 		} else {
 			a.state = stateID.hunting;
 		}
+	}
+}
+Simulation.prototype.findTransport = function(i,a) {
+	var closestDist = NONE;
+	var closestID = NONE;
+	var dx, dy = 0;
+	var tx, ty = 0;
+
+	for (var j=0; j<this.planet.agent.length; j++) {
+		if (j != i) {
+			var ta = this.planet.agent[j];
+			if (ta.factionID == a.factionID && ta.isAlive == true
+				&& agentTypes[ta.type].transportCapacity > 0
+				&& (ta.state == stateID.idle
+					|| ta.state == stateID.moving
+					|| ta.state == stateID.hunting
+					|| ta.state == stateID.capturing
+					|| ta.state == stateID.alert)) {
+						// go interrupt what the transport is doing
+				if (closestID == NONE) {
+					dx = a.x - ta.x;
+					dy = a.y - ta.y;
+					closestDist = dx*dx + dy*dy;
+					closestID = j;
+					tx = ta.x;
+					ty = ta.y;
+				} else {
+					dx = a.x - ta.x;
+					dy = a.y - ta.y;
+					if ((dx*dx+dy*dy)<closestDist) {
+						closestDist = dx*dx + dy*dy;
+						closestID = j;
+						tx = ta.x;
+						ty = ta.y;
+					}
+				}
+			}
+		}
+	}
+
+	if (closestID == NONE) {
+		a.state = stateID.idle;
+		//this.handleIdleAgent(i,a);
+	} else {
+		this.setCourse(a, tx, ty);
+		a.targAgentID = closestID;
+		a.state = stateID.boarding;
+		// target transport is also set to rendezvous
+		var ta = this.planet.agent[closestID];
+		this.setCourse(ta, a.x, a.y);
+		ta.targAgentID = i;
+		ta.state = stateID.pickingUp;
+
 	}
 }
 Simulation.prototype.setCourse = function(a,targX,targY) {

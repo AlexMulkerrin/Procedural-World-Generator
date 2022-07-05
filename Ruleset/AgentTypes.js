@@ -25,8 +25,8 @@ const agentTypes = [
 	{name:"swordsman", locomotion:locomotionID.walker, maxHealth:200, size:10, speed:20000, cost:30, damage:30, range:0, cooldown:5},
 	{name:"horseman", locomotion:locomotionID.mounted, maxHealth:100, size:10, speed:40000, cost:30, damage:20, range:0, cooldown:5},
 	{name:"chariot", locomotion:locomotionID.wheeled, maxHealth:100, size:10, speed:40000, cost:20, damage:10, range:0, cooldown:5},
-	{name:"catapult", locomotion:locomotionID.wheeled, maxHealth:10, size:10, speed:10000, cost:20, damage:40, range:300, cooldown:20, isIndirect:true},
-	{name:"galley", locomotion:locomotionID.boat, maxHealth:100, size:10, speed:60000, cost:30, damage:10, range:200, cooldown:5, capacity:2},
+	{name:"catapult", locomotion:locomotionID.wheeled, maxHealth:100, size:10, speed:10000, cost:20, damage:40, range:300, cooldown:20, isIndirect:true},
+	{name:"galley", locomotion:locomotionID.boat, maxHealth:100, size:10, speed:60000, cost:30, damage:10, range:200, cooldown:5, transportCapacity:2},
 
 	{name:"battleship", locomotion:locomotionID.ship, maxHealth:100, size:100, speed:20000, damage:30, range:40000, cooldown:10, radar:100000}
 ];

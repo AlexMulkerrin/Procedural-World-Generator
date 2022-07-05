@@ -2,7 +2,7 @@ const colour = {
 /* Interface elements */
 background:"#eeeeff", textWhite:"#ffffff", textBlack:"#000000", textDarkBlue:"#103D7C", textDarkGreen:"#0F5123", textCyan:"#0CE3EB", textRed:"#ff0000",
  point:"#FF6A00", cursor:"#9FC7ff", error:"#ff00ff",
-agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9", attackOrder:"#ffff00", captureOrder:"#ff0000",
+agentHover:"#B6FF00", agentSelect:"#00ff00", agentRange:"#ff0000", agentRadar:"#00ffff", agentWreck:"#cccccc", moveOrder:"#A1CDE9", attackOrder:"#ffff00", captureOrder:"#ff0000", transportOrder:"#ff00ff",
 highlight:"#bbccff", button:"#cccccc", select:"#aaaaaa",
 minimap:"#ffffff", tabBackground:"#ffffff",
 /* Terrain tile colours */
@@ -329,6 +329,15 @@ Display.prototype.drawAgents = function() {
 			}
 		}
 
+		// tranport related things
+		if (a.state == stateID.pickingUp || a.state == stateID.transporting
+			|| a.state == stateID.boarding) {
+			this.ctx.strokeStyle = colour.transportOrder;
+			var tx = Math.floor((a.targX - control.cameraX) * incX);
+			var ty = Math.floor((a.targY - control.cameraY) * incY);
+			this.drawLine(x,y,tx,ty,1);
+		}
+
 
 		if (a.isAlive == true) {
 			this.ctx.fillStyle = planet.faction[a.factionID].colour;
@@ -361,7 +370,7 @@ Display.prototype.drawAgents = function() {
 				sy = 0;
 				break;
 		}
-		if (agentTypes[a.type].capacity > 0) {
+		if (agentTypes[a.type].transportCapacity > 0) {
 			sy += 75;
 		} else if (agentTypes[a.type].isIndirect == true) {
 			sy += 30;
@@ -387,6 +396,13 @@ Display.prototype.drawAgents = function() {
 				//this.ctx.fillStyle = colour.agentHover;
 				//this.drawOutline(x-(r/2+2),y-(r/2+2),r+4,r+4,1);
 			}
+		}
+
+		// note carried agents
+		if (a.cargo.length > 0) {
+			this.ctx.font = "12px Verdana";
+			this.ctx.fillStyle = colour.textWhite;
+			this.ctx.fillText(a.cargo.length,x,y);
 		}
 
 	}
@@ -802,12 +818,12 @@ Display.prototype.drawSelectionTab = function() {
 		this.drawText("hovered agents: " + hovered.length);
 		for (var i=0; i<hovered.length; i++) {
 			var a = p.agent[hovered[i]];
-			this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+			this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name+" "+a.state);
 		}
 	} else if (hovered.length == 1) {
 		this.drawText("hovered agent:");
 		var a = p.agent[hovered[0]];
-		this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+		this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name+" "+a.state);
 	} else {
 		this.drawText("hovered agent:");
 		this.drawText("none");
