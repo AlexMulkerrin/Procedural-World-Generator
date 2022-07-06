@@ -101,7 +101,7 @@ Planet.prototype.generateCity = function(tileX, tileY, value) {
 	}
 	this.structure.push(new Structure(id, x, y, tileX, tileY, pop, currentFactionID, isHarbour));
 	this.terrain.setCityTerritory(id, tileX, tileY);
-	this.terrain.setFactionInfluence(currentFactionID, tileX, tileY);
+	this.terrain.setFactionInfluence(id, currentFactionID, tileX, tileY);
 	this.totalPop += pop;
 }
 Planet.prototype.generateAgents = function(num) {

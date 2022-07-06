@@ -822,10 +822,15 @@ Display.prototype.drawSelectionTab = function() {
 	if (m.isOverMap == true) {
 		var t = p.terrain.tile[m.tileX][m.tileY];
 		var typeName = Object.keys(tileID)[t.type];
-		this.drawText(typeName);
+		//this.drawText(typeName);
 
 		var r = p.terrain.regionDetails;
 		this.drawText(r[t.islandID].name);
+
+		this.ctx.fillStyle = this.selectTileColour(t.type, t.elevation);
+		this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+		this.ctx.fillStyle = colour.textBlack;
+
 		if (t.regionID != NONE) {
 			this.drawText(r[t.regionID].name);
 		} else {
@@ -843,6 +848,10 @@ Display.prototype.drawSelectionTab = function() {
 		}
 
 		if (t.factionInfluence != NONE) {
+			var f = p.faction[t.factionInfluence];
+			this.ctx.fillStyle = f.colour;
+			this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+			this.ctx.fillStyle = colour.textBlack;
 			this.drawText(p.faction[t.factionInfluence].name+" territory");
 		} else {
 			this.drawText("unowned");
@@ -868,21 +877,35 @@ Display.prototype.drawSelectionTab = function() {
 		this.drawText("none");
 	}
 
+	var f = p.faction[control.selectedFaction]
+	this.ctx.fillStyle = f.colour;
+	this.ctx.fillRect(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight);
+	this.ctx.fillStyle = colour.textBlack;
+	this.drawText("faction "+f.name+":");
+
 	var selected = control.selectedAgentList;
-	this.drawText("selected faction: "+ control.selectedFaction);
 	if (selected.length > 1) {
 		this.drawText("selected agents: " + selected.length);
 		for (var i=0; i<selected.length; i++) {
 			var a = p.agent[selected[i]];
-			this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+			this.drawText(agentTypes[a.type].name);
 		}
 	} else if (selected.length == 1) {
 		this.drawText("selected agent:");
 		var a = p.agent[selected[0]];
-		this.drawText(p.faction[a.factionID].name + " "+ agentTypes[a.type].name);
+		this.drawText(agentTypes[a.type].name);
 	} else {
 		this.drawText("selected agent:");
 		this.drawText("none");
+	}
+
+	this.drawText("hovered city:");
+	var hoveredCity = control.mouse.hoveredCity;
+	if (hoveredCity == NONE) {
+		this.drawText("none")
+	} else {
+		var s = p.structure[hoveredCity];
+		this.drawText(p.faction[s.factionID].name+" "+s.name+" "+s.population+"M")
 	}
 }
 

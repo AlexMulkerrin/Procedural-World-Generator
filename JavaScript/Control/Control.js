@@ -60,6 +60,8 @@ function Control(inSimulation) {
 	document.onkeydown = function(e){t.handleKeyDown(e)};
 	document.onkeyup = function(e){t.handleKeyUp(e)};
 
+	document.documentElement.onmouseenter = function(e){t.handleMouseEnter(e)};
+	document.documentElement.onmouseleave = function(e){t.handleMouseLeave(e)};
 	window.onresize = function(){t.resizeCanvas(); };
 }
 Control.prototype.resizeCanvas = function() {
@@ -246,10 +248,20 @@ Control.prototype.updateMouse = function() {
 		m.isOverMap = false;
 	}
 
+	m.hoveredCity = NONE;
 	if (m.isOverMap == true) {
 		m.tileX = Math.floor(m.mapX/p.gridSize);
 		m.tileY = Math.floor(m.mapY/p.gridSize);
+
+		for (var i=0; i<p.structure.length; i++) {
+			var s = p.structure[i];
+			if (m.tileX == s.tileX && m.tileY == s.tileY) {
+				m.hoveredCity = i;
+				break;
+			}
+		}
 	}
+
 
 	var sqSize = 3;
 	m.isOverMinimap = false;
@@ -369,6 +381,7 @@ Control.prototype.handleMouseWheel = function(event) {
 		this.zoomIn(true);
 	}
 }
+
 Control.prototype.handleKeyDown = function(event) {
 	var keyCode;
 	if (event == null) {
@@ -403,6 +416,12 @@ Control.prototype.handleKeyUp = function(event) {
 	var key = String.fromCharCode(keyCode).toLowerCase();
 	this.keyCodes[key] = false;
 	this.keyCodes[keyCode] = false;
+}
+Control.prototype.handleMouseEnter = function(event) {
+	this.mouse.isOverWindow = true;
+}
+Control.prototype.handleMouseLeave= function(event) {
+	this.mouse.isOverWindow = false;
 }
 
 Control.prototype.handleMovementOrder = function(nx,ny) {
@@ -631,7 +650,7 @@ Control.prototype.handlePanning = function() {
 		this.cameraY += panDist;
 	}
 
-	if (m.hoveredButton == NONE /*&& m.isOverMap == true*/ && this.allowMousePanning == true) {
+	if (m.hoveredButton == NONE && m.isOverWindow == true && this.allowMousePanning == true) {
 		if (m.x < this.panningRegion) {
 			this.cameraX -= panDist;
 		} else if (m.x > this.c.width - this.panningRegion) {

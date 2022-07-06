@@ -533,7 +533,7 @@ Terrain.prototype.setCityTerritory = function(id, x, y) {
 		}
 	}
 }
-Terrain.prototype.setFactionInfluence = function(id, x, y) {
+Terrain.prototype.setFactionInfluence = function(cityID, factionID, x, y) {
 	var radius = 5;
 	var cutoff = radius*radius+1;
 	for (var i= -radius; i<=radius; i++) {
@@ -543,14 +543,17 @@ Terrain.prototype.setFactionInfluence = function(id, x, y) {
 				var ny = y + j;
 				if (this.isInBounds(nx,ny)
 				&& this.tile[nx][ny].type != tileID.water
-				&& this.tile[nx][ny].factionInfluence == NONE) {
-					this.tile[nx][ny].factionInfluence = id;
+				/*&& this.tile[nx][ny].factionInfluence == NONE*/
+				&& (this.tile[nx][ny].cityTerritory == NONE ||
+					this.tile[nx][ny].cityTerritory == cityID)
+				) {
+					this.tile[nx][ny].factionInfluence = factionID;
 				}
 			}
 		}
 	}
 }
-Terrain.prototype.wipeFactionInfluence = function(id, x, y) {
+Terrain.prototype.wipeFactionInfluence = function(cityID, factionID, x, y) {
 	var radius = 5;
 	var cutoff = radius*radius+1;
 	for (var i= -radius; i<=radius; i++) {
@@ -560,7 +563,10 @@ Terrain.prototype.wipeFactionInfluence = function(id, x, y) {
 				var ny = y + j;
 				if (this.isInBounds(nx,ny)
 				&& this.tile[nx][ny].type != tileID.water
-				&& this.tile[nx][ny].factionInfluence == id) {
+				&& this.tile[nx][ny].factionInfluence == factionID
+				&& (this.tile[nx][ny].cityTerritory == NONE ||
+					this.tile[nx][ny].cityTerritory == cityID)
+				) {
 					this.tile[nx][ny].factionInfluence = NONE;
 				}
 			}

@@ -280,8 +280,8 @@ Simulation.prototype.handleCapture = function(a) {
 	var targ = p.structure[a.targAgentID];
 
 	if (targ.factionID != a.factionID) {
-		p.terrain.wipeFactionInfluence(targ.factionID, targ.tileX, targ.tileY);
-		p.terrain.setFactionInfluence(a.factionID, targ.tileX, targ.tileY);
+		p.terrain.wipeFactionInfluence(a.targAgentID, targ.factionID, targ.tileX, targ.tileY);
+		p.terrain.setFactionInfluence(a.targAgentID, a.factionID, targ.tileX, targ.tileY);
 		if (targ.factionID == 0) {
 			console.log("City "+a.targAgentID+" has been lost...");
 			this.targetSoundSystem.createTone(noteNameID.B3,2);

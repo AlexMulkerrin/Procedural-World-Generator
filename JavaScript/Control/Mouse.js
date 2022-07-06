@@ -12,6 +12,8 @@ function Mouse() {
 	this.tileX = NONE;
 	this.tileY = NONE;
 
+	this.isOverWindow = true;
+
 	this.isOverMap = false;
 	this.isDragSelecting = false;
 
