@@ -3,7 +3,7 @@ const zoomScales = [
 1,2,5, 10,20,50, 100,200,500, 1000,2000,5000, 10000,20000,50000, 100000,200000,500000, 1000000,2000000,5000000, 10000000,20000000,50000000, 100000000];
 
 const detailsID = {planet:0, terrain:1, factions:2, cities:3, agents:4};
-const visibilityID = {territory:0, improvements:1, cities:2, agents:3, labels:4, interface:5};
+const visibilityID = {territory:0, improvements:1, cities:2, agents:3, labels:4, interface:5, minimapTerritory:6, minimapCities:7, minimapAgents:8};
 
 function Control(inSimulation) {
 	this.c = document.getElementById("canvas");
@@ -37,6 +37,10 @@ function Control(inSimulation) {
 	this.visibilityFlags[visibilityID.agents] = true;
 	this.visibilityFlags[visibilityID.labels] = true;
 	this.visibilityFlags[visibilityID.interface] = true;
+
+	this.visibilityFlags[visibilityID.minimapTerritory] = true;
+	this.visibilityFlags[visibilityID.minimapCities] = true;
+	this.visibilityFlags[visibilityID.minimapAgents] = true;
 
 
 	var t = this;
@@ -132,25 +136,53 @@ Control.prototype.makeInterface = function() {
 	g.y = g.gap;
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"⏹️", "open menu",'m',"openMenu"));
 	g.shift(-1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔄", "generate new world",'r',"generateWorld"));
-	g.shift(1,1);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🎵", "open music in new tab",'n',"openMusicTab"));
+	g.shift(-1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔇", "toggle mute",'b',"toggleMute"));
+	g.shift(-1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"⭐️", "generate new world",'r',"generateWorld"));
+	g.shift(-1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"📈", "open stats",'v',"openStats"));
+
+
+	//🟠🟧🔶🔵🟦🔷🟢🟣🔇📈
+	//✈️⛵️🚢🦶🏃🚶🧍🪖🛞🦵👟🥾👣
+	//🌟✨🪩⭐️☀️
+
+	g.shift(0,1);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔁", "cycle through cities",'tab',"cycleCities"));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🏃", "select land units",'z',"selectLand"));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚢", "select sea units",'x',"selectSea"));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"✈️", "select air units",'c',"selectAir"));
+	g.shift(1,0);
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"🚨", "select everything",'e',"selectEverything"));
 
-	// bottom left 🟢⚪️
+	// bottom left
 	g.x = 248;
 	g.y = this.c.height - (g.size + g.gap);
-	g.shift(0,-1);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle territory visibility",'t',"toggleVisibilityFlag",0));
+	g.shift(0,-2);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟠", "toggle minimap territory visibility",'j',"toggleVisibilityFlag", visibilityID.minimapTerritory));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle improvements visibility",'y',"toggleVisibilityFlag",1));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟧", "toggle minimap cities visibility",'k',"toggleVisibilityFlag", visibilityID.minimapCities));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle cities visibility",'u',"toggleVisibilityFlag",2));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔶", "toggle minimap cities visibility",'l',"toggleVisibilityFlag", visibilityID.minimapAgents));
 	g.shift(-2,1);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle agents visibility",'i',"toggleVisibilityFlag",3));
+
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔵", "toggle territory visibility",'t',"toggleVisibilityFlag",visibilityID.territory));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle labels visibility",'o',"toggleVisibilityFlag",4));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟦", "toggle cities visibility",'y',"toggleVisibilityFlag",visibilityID.cities));
 	g.shift(1,0);
-	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle interface visibility",'p',"toggleVisibilityFlag",5));
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔷", "toggle agents visibility",'u',"toggleVisibilityFlag",visibilityID.agents));
+	g.shift(-2,1);
+
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟤", "toggle improvements visibility",'i',"toggleVisibilityFlag", visibilityID.improvements));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🟢", "toggle labels visibility",'o',"toggleVisibilityFlag",visibilityID.labels));
+	g.shift(1,0);
+	this.button.push(new Button(g.x,g.y,g.size,g.size,"🎦", "toggle interface visibility",'p',"toggleVisibilityFlag",visibilityID.interface));
 	g.shift(1,0);
 
 	// bottom right
@@ -431,6 +463,12 @@ Control.prototype.openMenu = function() {
 	// todo
 	console.log("not implemented yet!");
 }
+Control.prototype.openMusicTab = function() {
+	// opens tab to suitable music
+	var url = "https://www.youtube.com/watch?v=nywHJUe5MJg"
+	window.open(url);
+}
+// https://www.youtube.com/watch?v=nywHJUe5MJg
 Control.prototype.selectEverything = function() {
 	var p = this.targetSimulation.planet;
 

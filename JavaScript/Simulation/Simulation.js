@@ -128,6 +128,7 @@ Simulation.prototype.handleMovingAgent = function(a) {
 			case stateID.moving:
 			case stateID.hunting:
 				a.state = stateID.alert;
+				// todo check to see if any agents in cargo and transport them
 				break;
 			case stateID.pickingUp:
 				// wait as reached rendezvous first
@@ -239,7 +240,7 @@ Simulation.prototype.handleBoardingAgent = function(i,a) {
 		var dx = ta.x - a.x;
 		var dy = ta.y - a.y;
 		var dist = dx*dx + dy*dy;
-		// kludge just add both agents speeds together for range
+		// kludge: just add both agents speeds together for range
 		var range = agentTypes[a.type].speed + agentTypes[ta.type].speed;
 		if (dist < (range*range)) {
 			//is within movement range so get on
@@ -352,6 +353,13 @@ Simulation.prototype.destroyAgent = function(a) {
 	a.isAlive = false;
 	a.decay = 120;
 	a.state = stateID.dead;
+	if (a.cargo.length > 0) {
+		// kill carried agents too
+		for (var i=0; i<a.cargo.length; i++) {
+			var ca = this.planet.agent[a.cargo[i]];
+			this.destroyAgent(ca);
+		}
+	}
 	//console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
 	if (a.factionID == 0) {
 		console.log("Our "+agentTypes[a.type].name+" has been defeated...");
@@ -479,7 +487,7 @@ Simulation.prototype.findTransport = function(i,a) {
 					|| ta.state == stateID.hunting
 					|| ta.state == stateID.capturing
 					|| ta.state == stateID.alert)) {
-						// go interrupt what the transport is doing
+					// go interrupt what the transport is doing
 				if (closestID == NONE) {
 					dx = a.x - ta.x;
 					dy = a.y - ta.y;

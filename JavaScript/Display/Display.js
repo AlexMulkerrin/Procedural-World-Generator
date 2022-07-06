@@ -474,6 +474,45 @@ Display.prototype.drawMinimap = function() {
 		}
 	}
 
+	if (control.visibilityFlags[visibilityID.minimapTerritory] == true) {
+		for (var i=0; i<terrain.width; i++) {
+			for (var j=0; j<terrain.height; j++) {
+
+				var factionID = terrain.tile[i][j].factionInfluence;
+				if (factionID != NONE) {
+					this.ctx.fillStyle = planet.faction[factionID].colour;
+					var x = i*sqSize + offsetX;
+					var y = j*sqSize + offsetY;
+					this.ctx.fillRect(x,y,sqSize,sqSize);
+				}
+			}
+		}
+	}
+
+	if (control.visibilityFlags[visibilityID.minimapAgents] == true) {
+		for (var i=0; i<planet.agent.length; i++) {
+			var a = planet.agent[i];
+			if (a.isAlive == true) {
+				var x = Math.floor(a.x/planet.gridSize)*sqSize + offsetX;
+				var y = Math.floor(a.y/planet.gridSize)*sqSize + offsetY;
+				this.ctx.fillStyle = planet.faction[a.factionID].colour;
+				// todo check contrast on faction colour
+				this.ctx.fillRect(x,y,sqSize,sqSize);
+			}
+		}
+	}
+
+	if (control.visibilityFlags[visibilityID.minimapCities] == true) {
+		for (var i=0; i<planet.structure.length; i++) {
+			var c = planet.structure[i];
+			var x = Math.floor(c.x/planet.gridSize)*sqSize + offsetX;
+			var y = Math.floor(c.y/planet.gridSize)*sqSize + offsetY;
+			this.ctx.fillStyle = colour.textWhite;
+			// todo check contrast on faction colour
+			this.ctx.fillRect(x,y,sqSize,sqSize);
+		}
+	}
+
 	var screenSpan = zoomScales[control.zoomLevel];
 	var screenHeight = screenSpan * this.c.height / this.c.width;
 
