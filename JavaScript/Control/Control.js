@@ -144,11 +144,6 @@ Control.prototype.makeInterface = function() {
 	g.shift(-1,0);
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"📈", "open stats",'v',"openStats"));
 
-
-	//🟠🟧🔶🔵🟦🔷🟢🟣🔇📈
-	//✈️⛵️🚢🦶🏃🚶🧍🪖🛞🦵👟🥾👣
-	//🌟✨🪩⭐️☀️
-
 	g.shift(0,1);
 	this.button.push(new Button(g.x,g.y,g.size,g.size,"🔁", "cycle through cities",'tab',"cycleCities"));
 	g.shift(1,0);
@@ -453,6 +448,7 @@ Control.prototype.cycleDetailsTab = function() {
 		this.detailsTab = NONE;
 	}
 }
+
 Control.prototype.generateWorld = function() {
 	var sim = this.targetSimulation;
 	sim.generateNewPlanet();
@@ -464,11 +460,72 @@ Control.prototype.openMenu = function() {
 	console.log("not implemented yet!");
 }
 Control.prototype.openMusicTab = function() {
-	// opens tab to suitable music
+	// opens tab to suitable music, Supreme Commander game opening
 	var url = "https://www.youtube.com/watch?v=nywHJUe5MJg"
 	window.open(url);
 }
-// https://www.youtube.com/watch?v=nywHJUe5MJg
+Control.prototype.toggleMute = function() {
+	// todo
+	console.log("not implemented yet!");
+}
+Control.prototype.openStats = function() {
+	// todo
+	console.log("not implemented yet!");
+}
+
+Control.prototype.cycleCities = function() {
+	// todo
+	console.log("not implemented yet!");
+}
+Control.prototype.selectLand = function() {
+	var p = this.targetSimulation.planet;
+
+	this.selectedAgentList = []
+	for (var i=0; i<p.agent.length; i++) {
+		var a = p.agent[i];
+		var locomotion = agentTypes[a.type].locomotion;
+		if (a.factionID == this.selectedFaction
+			&& (locomotion == locomotionID.walker
+				|| locomotion == locomotionID.wheeled
+				|| locomotion == locomotionID.tracked
+				|| locomotion == locomotionID.hover
+				|| locomotion == locomotionID.amphibious
+				|| locomotion == locomotionID.climber
+				|| locomotion == locomotionID.mounted )) {
+			this.selectedAgentList.push(i);
+		}
+	}
+}
+Control.prototype.selectSea = function() {
+	var p = this.targetSimulation.planet;
+
+	this.selectedAgentList = []
+	for (var i=0; i<p.agent.length; i++) {
+		var a = p.agent[i];
+		var locomotion = agentTypes[a.type].locomotion;
+		if (a.factionID == this.selectedFaction
+			&& (locomotion == locomotionID.boat
+				|| locomotion == locomotionID.ship
+				|| locomotion == locomotionID.submersible )) {
+			this.selectedAgentList.push(i);
+		}
+	}
+}
+Control.prototype.selectAir = function() {
+	var p = this.targetSimulation.planet;
+
+	this.selectedAgentList = []
+	for (var i=0; i<p.agent.length; i++) {
+		var a = p.agent[i];
+		var locomotion = agentTypes[a.type].locomotion;
+		if (a.factionID == this.selectedFaction
+			&& (locomotion == locomotionID.copter
+				|| locomotion == locomotionID.plane
+				|| locomotion == locomotionID.rocket )) {
+			this.selectedAgentList.push(i);
+		}
+	}
+}
 Control.prototype.selectEverything = function() {
 	var p = this.targetSimulation.planet;
 
@@ -480,6 +537,7 @@ Control.prototype.selectEverything = function() {
 		}
 	}
 }
+
 Control.prototype.toggleVisibilityFlag = function(value) {
 	this.visibilityFlags[value] = !this.visibilityFlags[value];
 }
@@ -573,7 +631,7 @@ Control.prototype.handlePanning = function() {
 		this.cameraY += panDist;
 	}
 
-	if (m.hoveredButton == NONE && m.isOverMap == true && this.allowMousePanning == true) {
+	if (m.hoveredButton == NONE /*&& m.isOverMap == true*/ && this.allowMousePanning == true) {
 		if (m.x < this.panningRegion) {
 			this.cameraX -= panDist;
 		} else if (m.x > this.c.width - this.panningRegion) {
