@@ -655,7 +655,24 @@ Display.prototype.drawPlanetDetails = function() {
 	this.drawText("Factions: "+p.summary.factionTotals.length);
 	this.drawText("Cities: "+p.structure.length);
 	this.drawText("Population: "+p.totalPop+" M");
-	this.drawText("---------");
+
+	//world domination bar
+	var dx = 180 / p.totalPop;
+
+	var sx = this.textCursorX;
+	for (var i=0; i<p.faction.length; i++) {
+		var f = p.faction[i];
+		var sw = dx * f.totalPop;
+		this.ctx.fillStyle = f.colour;
+		this.ctx.fillRect(sx, this.textCursorY+4-this.textHeight,sw,this.textHeight);
+		sx += sw;
+	}
+	this.ctx.fillStyle = colour.textBlack;
+	this.drawOutline(this.textCursorX, this.textCursorY+4-this.textHeight,180,this.textHeight,1);
+	for (var i=0; i<10; i++) {
+		this.ctx.fillRect(this.textCursorX+i*18, this.textCursorY+4-this.textHeight,1,this.textHeight);
+	}
+	this.drawText("");
 
 	this.drawText("Total islands: "+p.terrain.numIslands);
 	for (var i=0; i<p.summary.islandTotals.length && i<6; i++) {

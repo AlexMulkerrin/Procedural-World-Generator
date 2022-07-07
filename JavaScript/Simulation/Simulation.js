@@ -352,7 +352,7 @@ Simulation.prototype.destroyAgent = function(a) {
 	var f = this.planet.faction[a.factionID];
 	a.isAlive = false;
 	a.decay = 120;
-	a.state = stateID.dead;
+	//a.state = stateID.dead;
 	if (a.cargo.length > 0) {
 		// kill carried agents too
 		for (var i=0; i<a.cargo.length; i++) {
