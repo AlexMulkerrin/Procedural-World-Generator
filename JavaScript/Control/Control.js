@@ -16,7 +16,7 @@ function Control(inSimulation) {
 	this.cameraX = -1*Math.floor((zoomScales[this.zoomLevel]-planet.circumference)/2);
 	this.cameraY = -1*Math.floor((zoomScales[this.zoomLevel]*this.c.height/this.c.width-planet.poleSpan)/2);
 
-	this.allowMousePanning = false;
+	this.allowMousePanning = true;
 	this.panningRegion = 16;
 	this.panningRate = 0.02;
 

@@ -1,8 +1,8 @@
 const mouseClickID = {leftClick:1, middleClick:2, rightClick:3};
 
 function Mouse() {
-	this.x = -100;
-	this.y = -100;
+	this.x = 100;
+	this.y = 100;
 
 	this.mapX = NONE;
 	this.mapY = NONE;
@@ -12,7 +12,7 @@ function Mouse() {
 	this.tileX = NONE;
 	this.tileY = NONE;
 
-	this.isOverWindow = true;
+	this.isOverWindow = false;
 
 	this.isOverMap = false;
 	this.isDragSelecting = false;

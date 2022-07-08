@@ -69,6 +69,7 @@ Display.prototype.refresh = function() {
 
 	if (ctrl.visibilityFlags[visibilityID.interface] == true) {
 		this.drawMinimap();
+		this.drawEventLog();
 
 		this.drawStats();
 		this.drawButtons();
@@ -530,6 +531,38 @@ Display.prototype.drawMinimap = function() {
 
 	this.ctx.fillStyle = colour.minimap;
 	this.drawOutline(offsetX + cx -1, offsetY + cy -1, cw+2, ch+2, 1);
+}
+Display.prototype.drawEventLog = function() {
+	var p = this.targetSimulation.planet;
+	var control = this.targetControl;
+
+	this.ctx.font = "bold 16px Verdana";
+	this.ctx.fillStyle = colour.textBlack;
+
+	// display simulation date
+	this.textCursorX = 250;
+	this.textCursorY = 30;
+
+	if (p.faction[0].isAlive == false) {
+		this.ctx.fillStyle = colour.textRed;
+		this.drawText("You have been defeated! press 'R' to restart");
+	} else {
+		var leader = p.summary.factionTotals[0][0];
+		var percent = Math.floor(100 * p.summary.factionTotals[0][1]/p.totalPop);
+		var output = "";
+		var name = p.faction[leader].name;
+		if (leader == 0) {
+			name += " (you)";
+		}
+		if (percent == 100) {
+			output = "World domination by "+name+"! press 'R' to restart";
+		} else if (percent > 66) {
+			output = name+" faction is dominating at "+percent+"% press 'R' to restart";
+		} else {
+			output = name+" faction is in the lead at "+percent+"%";
+		}
+		this.drawText(output);
+	}
 }
 
 Display.prototype.drawButtons = function() {
