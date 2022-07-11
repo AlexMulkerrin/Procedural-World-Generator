@@ -12,6 +12,9 @@ function Simulation() {
 	this.gameState = gameStateID.ingame;
 
 	this.planet = new Planet(6371000,0);
+
+	this.eventLog = [];
+	this.addEvent("Welcome to planet "+this.planet.name);
 }
 Simulation.prototype.generateNewPlanet = function() {
 	this.year = 0;
@@ -19,10 +22,12 @@ Simulation.prototype.generateNewPlanet = function() {
 	this.day = 0;
 
 	this.planet = new Planet(6371000,0);
+
+	this.eventLog = [];
+	this.addEvent("Welcome to planet "+this.planet.name);
 }
 
 Simulation.prototype.update = function() {
-	this.timer++;
 
 	if (this.isPaused == false) {
 		this.updateAgents();
@@ -30,6 +35,7 @@ Simulation.prototype.update = function() {
 		this.updateFactions();
 		this.planet.generateSummary();
 
+		this.timer++;
 		this.day++;
 		if (this.day>=30) {
 			this.day = 0;
@@ -282,17 +288,19 @@ Simulation.prototype.handleCapture = function(a) {
 	if (targ.factionID != a.factionID) {
 		p.terrain.wipeFactionInfluence(a.targAgentID, targ.factionID, targ.tileX, targ.tileY);
 		p.terrain.setFactionInfluence(a.targAgentID, a.factionID, targ.tileX, targ.tileY);
+
 		if (targ.factionID == 0) {
-			console.log("City "+a.targAgentID+" has been lost...");
+			//console.log("City "+targ.name+" has been lost...");
+			this.addEvent("City "+targ.name+" lost...");
 			this.targetSoundSystem.createTone(noteNameID.B3,2);
 		}
 		if (a.factionID == 0) {
-			console.log("City "+a.targAgentID+" has been captured!");
+			//console.log("City "+a.targAgentID+" has been captured!");
+			this.addEvent("City "+targ.name+" captured!");
 			this.targetSoundSystem.createTone(noteNameID.G4,2);
 		}
 		targ.factionID = a.factionID;
 		a.state = stateID.idle;
-		//console.log("City "+a.targAgentID+" has been captured!");
 	} else {
 		a.state = stateID.alert;
 	}
@@ -339,7 +347,8 @@ Simulation.prototype.handleWeaponFiring = function(i,a) {
 						this.destroyAgent(ta);
 						if (a.factionID == 0) {
 							var f = this.planet.faction[ta.factionID];
-							console.log(f.name+" "+agentTypes[ta.type].name+" has been destroyed!");
+							//console.log(f.name+" "+agentTypes[ta.type].name+" has been destroyed!");
+							this.addEvent(f.name+" "+agentTypes[ta.type].name+ " destroyed!");
 							this.targetSoundSystem.createTone(noteNameID.F4,0);
 						}
 					}
@@ -360,9 +369,9 @@ Simulation.prototype.destroyAgent = function(a) {
 			this.destroyAgent(ca);
 		}
 	}
-	//console.log(f.name+" "+agentTypes[a.type].name+" has been destroyed!");
 	if (a.factionID == 0) {
-		console.log("Our "+agentTypes[a.type].name+" has been defeated...");
+		//console.log("Our "+agentTypes[a.type].name+" has been defeated...");
+		this.addEvent(agentTypes[a.type].name+" lost...");
 		this.targetSoundSystem.createTone(noteNameID.C4,0);
 	}
 }
@@ -568,8 +577,14 @@ Simulation.prototype.updateStructures = function() {
 			s.constructionProgress += s.population;
 			if (s.constructionProgress >= s.constructionTarget) {
 				s.constructionProgress = 0;
-				p.createAgent(s.x, s.y, s.currentConstruction, s.factionID)
+				p.createAgent(s.x, s.y, s.currentConstruction, s.factionID);
+
+				if (s.factionID == 0) {
+					this.addEvent(s.name+" builds "+agentTypes[s.currentConstruction].name);
+				}
 				s.currentConstruction = NONE;
+
+
 			}
 		}
 	}
@@ -602,4 +617,15 @@ Simulation.prototype.updateFactions = function() {
 
 		}
 	}
+}
+
+Simulation.prototype.addEvent = function(inText) {
+	var e = new Event(this.timer, 0, inText);
+	this.eventLog.push(e);
+}
+
+function Event(inTime,inType,inText) {
+	this.time = inTime;
+	this.type = inType;
+	this.text = inText;
 }

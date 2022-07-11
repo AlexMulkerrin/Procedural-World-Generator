@@ -540,7 +540,7 @@ Display.prototype.drawEventLog = function() {
 	this.ctx.fillStyle = colour.textBlack;
 
 	// display simulation date
-	this.textCursorX = 250;
+	this.textCursorX = 208;
 	this.textCursorY = 30;
 
 	if (p.faction[0].isAlive == false) {
@@ -562,6 +562,15 @@ Display.prototype.drawEventLog = function() {
 			output = name+" faction is in the lead at "+percent+"%";
 		}
 		this.drawText(output);
+	}
+
+	var sim = this.targetSimulation;
+	this.ctx.fillStyle = colour.textBlack;
+
+	var start = sim.eventLog.length - 5;
+	if (start<0) start = 0;
+	for (var i=start; i<sim.eventLog.length; i++) {
+		this.drawText(sim.eventLog[i].text);
 	}
 }
 
